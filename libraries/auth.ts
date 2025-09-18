@@ -96,13 +96,12 @@ export class Auth<
   get secret(): Promise<KeyObject> {
     return new Promise((resolve) => {
       if (this.#secret === undefined) {
-        importPKCS8(
-          this.config.settings.privateKey,
-          this.config.settings.algorithm,
-        ).then((key) => {
-          this.#secret = key;
-          resolve(key);
-        });
+        importPKCS8(this.config.jwt.privateKey, this.config.jwt.algorithm).then(
+          (key) => {
+            this.#secret = key;
+            resolve(key);
+          },
+        );
       } else {
         resolve(this.#secret);
       }
@@ -115,13 +114,12 @@ export class Auth<
   get pubkey(): Promise<KeyObject> {
     return new Promise<KeyObject>((resolve) => {
       if (this.#pubkey === undefined) {
-        importSPKI(
-          this.config.settings.publicKey,
-          this.config.settings.algorithm,
-        ).then((key) => {
-          this.#pubkey = key;
-          resolve(key);
-        });
+        importSPKI(this.config.jwt.publicKey, this.config.jwt.algorithm).then(
+          (key) => {
+            this.#pubkey = key;
+            resolve(key);
+          },
+        );
       } else {
         resolve(this.#pubkey);
       }
@@ -165,10 +163,10 @@ export class Auth<
     expiration: string | number | Date = "1 hour",
   ): Promise<string> {
     return new SignJWT(payload)
-      .setProtectedHeader({ alg: this.config.settings.algorithm })
+      .setProtectedHeader({ alg: this.config.jwt.algorithm })
       .setIssuedAt()
-      .setIssuer(this.config.settings.issuer)
-      .setAudience(this.config.settings.audience)
+      .setIssuer(this.config.jwt.issuer)
+      .setAudience(this.config.jwt.audience)
       .setExpirationTime(expiration)
       .sign(await this.secret);
   }
@@ -187,8 +185,8 @@ export class Auth<
         token,
         await this.pubkey,
         {
-          issuer: this.config.settings.issuer,
-          audience: this.config.settings.audience,
+          issuer: this.config.jwt.issuer,
+          audience: this.config.jwt.audience,
         },
       );
 
@@ -242,7 +240,7 @@ type Config<
   principal: TPrincipalProvider;
   resources: TResourceRegistry;
   access: TAccessControlProvider;
-  settings: {
+  jwt: {
     algorithm: string;
     privateKey: string;
     publicKey: string;
