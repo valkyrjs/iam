@@ -175,8 +175,8 @@ type PrincipalResult<
   TRoles extends ZodUnion,
   TAttributes extends ZodRawShape,
 > =
+  | Promise<Principal<TRoles, TAttributes> | undefined>
   | Principal<TRoles, TAttributes>
-  | Promise<Principal<TRoles, TAttributes>>
   | undefined;
 
 /*
