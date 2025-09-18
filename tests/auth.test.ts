@@ -5,13 +5,13 @@ import { auth } from "./mocks/auth.ts";
 
 describe("Auth", () => {
   it("should sign a session", async () => {
-    const token = await auth.generate({ type: "user", accountId: "abc" });
+    const token = await auth.generate({ uid: "abc" });
 
     assertNotEquals(token, undefined);
   });
 
   it("should resolve a session", async () => {
-    const token = await auth.generate({ type: "user", accountId: "abc" });
+    const token = await auth.generate({ uid: "abc" });
 
     assertNotEquals(token, undefined);
 
@@ -20,14 +20,14 @@ describe("Auth", () => {
       throw new Error(`Session failed to resolve with code ${session.code}`);
     }
 
-    assertEquals(session.accountId, "abc");
+    assertEquals(session.principal.uid, "abc");
     assertEquals(session.$meta.payload.iss, "https://valkyrjs.com");
     assertEquals(session.$meta.payload.aud, "https://valkyrjs.com");
     assertEquals(session.$meta.headers.alg, "RS256");
   });
 
   it("should invalidate after expiry", async () => {
-    const token = await auth.generate({ type: "user", accountId: "abc" }, "1 second");
+    const token = await auth.generate({ uid: "abc" }, "1 second");
 
     assertNotEquals(token, undefined);
 
@@ -43,7 +43,7 @@ describe("Auth", () => {
   });
 
   it("should return a raw session json object", async () => {
-    const token = await auth.generate({ type: "user", accountId: "account-a" });
+    const token = await auth.generate({ uid: "account-a" });
 
     assertNotEquals(token, undefined);
 
@@ -52,11 +52,13 @@ describe("Auth", () => {
       throw new Error("Expected valid session!");
     }
 
-    assertObjectMatch(session.toJSON(), { type: "user", accountId: "account-a" });
+    assertObjectMatch(session.toJSON(), {
+      uid: "account-a",
+    });
   });
 
-  it("should generate a single role access instance", async () => {
-    const token = await auth.generate({ type: "user", accountId: "account-a" });
+  it("should resolve access control with principal", async () => {
+    const token = await auth.generate({ uid: "account-a" });
 
     assertNotEquals(token, undefined);
 
@@ -65,35 +67,7 @@ describe("Auth", () => {
       throw new Error("Expected valid session!");
     }
 
-    assertEquals(session.has("account", "create"), true);
-    assertEquals(session.has("account", "read"), true);
-    assertEquals(session.has("account", "update"), true);
-    assertEquals(session.has("account", "delete"), true);
-  });
-
-  it("should generate a multi role access instance", async () => {
-    const token = await auth.generate({ type: "user", accountId: "account-b" });
-
-    assertNotEquals(token, undefined);
-
-    const session = await auth.resolve(token);
-    if (session.valid === false) {
-      throw new Error("Expected valid session!");
-    }
-
-    assertEquals(session.has("account", "create"), false);
-    assertEquals(session.has("account", "read"), true);
-    assertEquals(session.has("account", "update"), true);
-    assertEquals(session.has("account", "delete"), true);
-  });
-
-  it("should pass guard checks", async () => {
-    assertEquals(await auth.check("account:own", { accountId: "account-a" }), true);
-    assertEquals(await auth.check("tenant:related", { tenantId: "tenant-a" }), true);
-  });
-
-  it("should fail guard checks", async () => {
-    assertEquals(await auth.check("account:own", { accountId: "account-b" }), false);
-    assertEquals(await auth.check("tenant:related", { tenantId: "tenant-c" }), false);
+    assertEquals(session.access.isAllowed("tenant-id"), true);
+    assertEquals(session.access.isAllowed("non-tenant-id"), false);
   });
 });

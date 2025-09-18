@@ -40,46 +40,49 @@
  * ```
  */
 
-import { importPKCS8, importSPKI, JWTHeaderParameters, JWTPayload, jwtVerify, type KeyObject, SignJWT } from "jose";
+import {
+  importPKCS8,
+  importSPKI,
+  type JWTHeaderParameters,
+  type JWTPayload,
+  jwtVerify,
+  type KeyObject,
+  SignJWT,
+} from "jose";
 import { JOSEError } from "jose/errors";
-import z, { ZodDiscriminatedUnion, ZodObject, ZodUnion } from "zod";
 
-import { Access } from "./access.ts";
-import { Guard } from "./guard.ts";
-import type { Permissions } from "./permissions.ts";
-import { Role, type RoleData, type RolesProvider } from "./role.ts";
+import type {
+  AccessControlProvider,
+  AnyAccessControlProvider,
+} from "./access.ts";
+import type { AnyPrincipal, AnyPrincipalProvider } from "./principal.ts";
+import type { AnyResourceRegistry } from "./resources.ts";
 
 /**
  * Provides a solution to manage user authentication and access control rights within an
  * application.
  */
 export class Auth<
-  TPermissions extends Permissions,
-  TZodSession extends ZodSession,
-  TGuard extends Guard<any, any>,
-  TSession extends z.infer<TZodSession>,
-  TProviders extends Providers<TPermissions, TSession>,
+  TPrincipalProvider extends AnyPrincipalProvider,
+  TResourceRegistry extends AnyResourceRegistry,
+  TAccessControlProvider extends AccessControlProvider<
+    TPrincipalProvider["$principal"]
+  >,
 > {
-  readonly #settings: Config<TPermissions, TZodSession, TGuard>["settings"];
-  readonly #session: TZodSession;
-  readonly #permissions: TPermissions;
-  readonly #guards: Map<TGuard["name"], TGuard>;
-
-  readonly #providers: TProviders;
-
   #secret?: KeyObject;
   #pubkey?: KeyObject;
 
-  declare readonly $permissions: TPermissions;
-  declare readonly $session: TSession;
+  declare $principal: TPrincipalProvider["$principal"];
+  declare $resources: TResourceRegistry["$resource"][];
+  declare $access: TAccessControlProvider;
 
-  constructor(config: Config<TPermissions, TZodSession, TGuard>, providers: TProviders) {
-    this.#settings = config.settings;
-    this.#session = config.session;
-    this.#permissions = config.permissions;
-    this.#guards = config.guards.reduce((guards, guard) => guards.set(guard.name, guard), new Map<TGuard["name"], TGuard>());
-    this.#providers = providers;
-  }
+  constructor(
+    readonly config: Config<
+      TPrincipalProvider,
+      TResourceRegistry,
+      TAccessControlProvider
+    >,
+  ) {}
 
   /*
    |--------------------------------------------------------------------------------
@@ -88,23 +91,15 @@ export class Auth<
    */
 
   /**
-   * Session zod object.
-   */
-  get session(): TZodSession {
-    return this.#session;
-  }
-
-  get roles(): TProviders["roles"] {
-    return this.#providers.roles;
-  }
-
-  /**
    * Secret key used to sign new tokens.
    */
   get secret(): Promise<KeyObject> {
     return new Promise((resolve) => {
       if (this.#secret === undefined) {
-        importPKCS8(this.#settings.privateKey, this.#settings.algorithm).then((key) => {
+        importPKCS8(
+          this.config.settings.privateKey,
+          this.config.settings.algorithm,
+        ).then((key) => {
           this.#secret = key;
           resolve(key);
         });
@@ -120,7 +115,10 @@ export class Auth<
   get pubkey(): Promise<KeyObject> {
     return new Promise<KeyObject>((resolve) => {
       if (this.#pubkey === undefined) {
-        importSPKI(this.#settings.publicKey, this.#settings.algorithm).then((key) => {
+        importSPKI(
+          this.config.settings.publicKey,
+          this.config.settings.algorithm,
+        ).then((key) => {
           this.#pubkey = key;
           resolve(key);
         });
@@ -159,15 +157,18 @@ export class Auth<
    * time span gets subtracted from the current unix timestamp. A "from now" suffix
    * can also be used for readability when adding to the current unix timestamp.
    *
-   * @param session    - Session to sign.
+   * @param payload    - Payload to sign.
    * @param expiration - Expiration date of the token. Default: 1 hour
    */
-  async generate(session: TSession, expiration: string | number | Date = "1 hour"): Promise<string> {
-    return new SignJWT(session as JWTPayload)
-      .setProtectedHeader({ alg: this.#settings.algorithm })
+  async generate(
+    payload: { uid: string },
+    expiration: string | number | Date = "1 hour",
+  ): Promise<string> {
+    return new SignJWT(payload)
+      .setProtectedHeader({ alg: this.config.settings.algorithm })
       .setIssuedAt()
-      .setIssuer(this.#settings.issuer)
-      .setAudience(this.#settings.audience)
+      .setIssuer(this.config.settings.issuer)
+      .setAudience(this.config.settings.audience)
       .setExpirationTime(expiration)
       .sign(await this.secret);
   }
@@ -178,28 +179,36 @@ export class Auth<
    *
    * @param token - Token to resolve auth session from.
    */
-  async resolve(token: string): Promise<SessionResolution<TSession, TPermissions>> {
+  async resolve(
+    token: string,
+  ): Promise<SessionResolution<this["$principal"], TAccessControlProvider>> {
     try {
-      const { payload, protectedHeader } = await jwtVerify<unknown>(token, await this.pubkey, {
-        issuer: this.#settings.issuer,
-        audience: this.#settings.audience,
-      });
+      const { payload, protectedHeader } = await jwtVerify<unknown>(
+        token,
+        await this.pubkey,
+        {
+          issuer: this.config.settings.issuer,
+          audience: this.config.settings.audience,
+        },
+      );
 
-      const session: TSession = (await this.session.parseAsync(payload)) as TSession;
-      const roles = await this.#providers.roles.getBySession(session);
-      const access = this.access(roles.map((data) => new Role<TPermissions>(data)));
+      const principal = await this.config.principal.resolve(
+        payload.uid as string,
+      );
+      if (principal === undefined) {
+        throw new Error("Principal Not Found");
+      }
 
       return {
         valid: true,
-        ...session,
-        has: access.has.bind(access),
-        toJSON(): TSession {
-          return session;
-        },
+        principal,
+        access: this.config.access(principal),
         $meta: {
           headers: protectedHeader,
           payload,
-          roles,
+        },
+        toJSON() {
+          return { uid: payload.uid as string };
         },
       };
     } catch (error) {
@@ -217,51 +226,6 @@ export class Auth<
       };
     }
   }
-
-  /*
-   |--------------------------------------------------------------------------------
-   | Access Control Utilities
-   |--------------------------------------------------------------------------------
-   */
-
-  /**
-   * Returns a new access instance with the configured permissions and roles.
-   *
-   * @param session - Session the access instance is working with.
-   * @param roles   - List of roles to add to the access instance.
-   */
-  access(roles: Role<TPermissions>[]): Access<TPermissions> {
-    return new Access<TPermissions>(this.#permissions, roles);
-  }
-
-  /**
-   * Guard given input against internal states is valid.
-   *
-   * The idea with guards is that we can take untrusted external input and
-   * verify that internal states and logic matches expectations.
-   *
-   * @param name  - Guard name to validate.
-   * @param input - Input to validate.
-   *
-   * @example
-   *
-   * Lets say your account is assigned a list of users to manage. We would
-   * assign you a list of user ids that you can manage. The untrusted
-   * external input would be a userId we want to modify, we now check that
-   * against our accounts internal user list to verify that the request
-   * can indeed manage the given user.
-   *
-   * ```ts
-   * await auth.check("user:manage", { userId }); // => true | false
-   * ```
-   */
-  async check<TName extends TGuard["name"], TInput extends TGuard["input"]>(name: TName, input: z.infer<TInput>): Promise<boolean> {
-    const guard = this.#guards.get(name);
-    if (guard === undefined) {
-      return false;
-    }
-    return guard.check(input);
-  }
 }
 
 /*
@@ -270,7 +234,14 @@ export class Auth<
  |--------------------------------------------------------------------------------
  */
 
-type Config<TPermissions extends Permissions, TSession extends ZodSession, TGuard extends Guard<any, any>> = {
+type Config<
+  TPrincipalProvider extends AnyPrincipalProvider,
+  TResourceRegistry extends AnyResourceRegistry,
+  TAccessControlProvider extends AnyAccessControlProvider,
+> = {
+  principal: TPrincipalProvider;
+  resources: TResourceRegistry;
+  access: TAccessControlProvider;
   settings: {
     algorithm: string;
     privateKey: string;
@@ -278,36 +249,39 @@ type Config<TPermissions extends Permissions, TSession extends ZodSession, TGuar
     issuer: string;
     audience: string;
   };
-  session: TSession;
-  permissions: TPermissions;
-  guards: TGuard[];
 };
 
-type Providers<TPermissions extends Permissions, TSession> = {
-  roles: RolesProvider<TPermissions, TSession>;
-};
+export type ResolvedSession<TAuth extends AnyAuth> = Extract<
+  SessionResolution<TAuth["$principal"], TAuth["$access"]>,
+  { valid: true }
+>;
 
-export type ResolvedSession<TAuth extends AnyAuth> = Extract<SessionResolution<TAuth["$session"], TAuth["$permissions"]>, { valid: true }>;
-
-export type SessionResolution<TSession, TPermissions extends Permissions> =
+export type SessionResolution<
+  TPrincipal extends AnyPrincipal,
+  TAccessControlProvider extends AccessControlProvider<TPrincipal>,
+> =
   | ({
       valid: true;
-    } & TSession & {
-        has: Access<TPermissions>["has"];
-        toJSON(): TSession;
-      } & {
-        $meta: {
-          headers: JWTHeaderParameters;
-          payload: JWTPayload;
-          roles: RoleData<TPermissions>[];
-        };
-      })
+    } & {
+      principal: TPrincipal;
+    } & {
+      access: ReturnType<TAccessControlProvider>;
+    } & {
+      $meta: {
+        headers: JWTHeaderParameters;
+        payload: JWTPayload;
+      };
+    } & {
+      toJSON(): { uid: string };
+    })
   | {
       valid: false;
       code: string;
       message: string;
     };
 
-type ZodSession = ZodObject | ZodUnion<ZodObject[]> | ZodDiscriminatedUnion<ZodObject[]>;
-
-type AnyAuth = Auth<any, any, any, any, any>;
+type AnyAuth = Auth<
+  AnyPrincipalProvider,
+  AnyResourceRegistry,
+  AnyAccessControlProvider
+>;

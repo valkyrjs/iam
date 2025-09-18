@@ -1,7 +1,7 @@
 {
   "dependencies": {
-    "jose": "6.0.10",
-    "zod": "next"
+    "jose": "6",
+    "zod": "4"
   },
   "devDependencies": {
     "@std/assert": "npm:@jsr/std__assert@1.0.12",
