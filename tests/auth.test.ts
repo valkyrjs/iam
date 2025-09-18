@@ -5,13 +5,13 @@ import { auth } from "./mocks/auth.ts";
 
 describe("Auth", () => {
   it("should sign a session", async () => {
-    const token = await auth.generate({ uid: "abc" });
+    const token = await auth.generate({ id: "abc" });
 
     assertNotEquals(token, undefined);
   });
 
   it("should resolve a session", async () => {
-    const token = await auth.generate({ uid: "abc" });
+    const token = await auth.generate({ id: "abc" });
 
     assertNotEquals(token, undefined);
 
@@ -20,14 +20,14 @@ describe("Auth", () => {
       throw new Error(`Session failed to resolve with code ${session.code}`);
     }
 
-    assertEquals(session.principal.uid, "abc");
+    assertEquals(session.principal.id, "abc");
     assertEquals(session.$meta.payload.iss, "https://valkyrjs.com");
     assertEquals(session.$meta.payload.aud, "https://valkyrjs.com");
     assertEquals(session.$meta.headers.alg, "RS256");
   });
 
   it("should invalidate after expiry", async () => {
-    const token = await auth.generate({ uid: "abc" }, "1 second");
+    const token = await auth.generate({ id: "abc" }, "1 second");
 
     assertNotEquals(token, undefined);
 
@@ -43,7 +43,7 @@ describe("Auth", () => {
   });
 
   it("should return a raw session json object", async () => {
-    const token = await auth.generate({ uid: "account-a" });
+    const token = await auth.generate({ id: "account-a" });
 
     assertNotEquals(token, undefined);
 
@@ -53,12 +53,12 @@ describe("Auth", () => {
     }
 
     assertObjectMatch(session.toJSON(), {
-      uid: "account-a",
+      id: "account-a",
     });
   });
 
   it("should resolve access control with principal", async () => {
-    const token = await auth.generate({ uid: "account-a" });
+    const token = await auth.generate({ id: "account-a" });
 
     assertNotEquals(token, undefined);
 

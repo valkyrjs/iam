@@ -32,9 +32,9 @@ const AttributesSchema = {
 export const principal = new PrincipalProvider(
   RolesSchema,
   AttributesSchema,
-  function (uid: string) {
+  function (id: string) {
     return this.schema.parse({
-      uid,
+      id,
       roles: ["user"], // dynamically fetch or compute roles here
       attributes: {
         tenantId: "tenant-id",
@@ -133,7 +133,7 @@ export const auth = new Auth({
 ```ts
 import { auth } from "./auth.ts";
 
-const token = await auth.generate({ uid: "xyz" });
+const token = await auth.generate({ id: "xyz" });
 ```
 
 ---

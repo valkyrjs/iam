@@ -8,9 +8,9 @@ export const principal = new PrincipalProvider(
   {
     tenantId: z.string().describe("Tenant which the principal is attached."),
   },
-  function (uid: string) {
+  function (id: string) {
     return this.schema.parse({
-      uid,
+      id,
       roles: ["user"],
       attributes: {
         tenantId: "tenant-id",

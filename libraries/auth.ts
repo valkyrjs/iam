@@ -159,7 +159,7 @@ export class Auth<
    * @param expiration - Expiration date of the token. Default: 1 hour
    */
   async generate(
-    payload: { uid: string },
+    payload: { id: string },
     expiration: string | number | Date = "1 hour",
   ): Promise<string> {
     return new SignJWT(payload)
@@ -191,7 +191,7 @@ export class Auth<
       );
 
       const principal = await this.config.principal.resolve(
-        payload.uid as string,
+        payload.id as string,
       );
       if (principal === undefined) {
         throw new Error("Principal Not Found");
@@ -206,7 +206,7 @@ export class Auth<
           payload,
         },
         toJSON() {
-          return { uid: payload.uid as string };
+          return { id: payload.id as string };
         },
       };
     } catch (error) {
@@ -270,7 +270,7 @@ export type SessionResolution<
         payload: JWTPayload;
       };
     } & {
-      toJSON(): { uid: string };
+      toJSON(): { id: string };
     })
   | {
       valid: false;

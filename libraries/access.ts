@@ -36,7 +36,7 @@ export type AnyAccessControlProvider = AccessControlProvider<AnyPrincipal>;
  *   };
  * };
  *
- * const principal: Principal = { uid: "123", roles: ["user"], attributes: {} };
+ * const principal: Principal = { id: "123", roles: ["user"], attributes: {} };
  * const access = provider(principal);
  * access.isAllowed({ kind: "post", id: "456", attributes: {} }, ["read"]); // => false
  */

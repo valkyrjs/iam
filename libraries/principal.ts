@@ -15,7 +15,7 @@ export type AnyPrincipalProvider = PrincipalProvider<any, any>;
  * Responsibilities:
  *   - Defines the allowed set of roles (`role` schema).
  *   - Defines the shape of attributes (`attributes` schema).
- *   - Provides a resolver function to fetch principals by UID.
+ *   - Provides a resolver function to fetch principals by ID.
  *
  * This pattern ensures that principal construction is always type-safe and
  * environment-specific (DB, API, directory, etc.), without requiring subclassing.
@@ -35,10 +35,10 @@ export type AnyPrincipalProvider = PrincipalProvider<any, any>;
  * const provider = new PrincipalProvider(
  *   roleSchema,
  *   attrSchema,
- *   async (uid) => {
- *     const roles = await getRolesFromDb(uid);
- *     const attributes = await getAttributesFromDb(uid);
- *     return { uid, roles, attributes };
+ *   async (id) => {
+ *     const roles = await getRolesFromDb(id);
+ *     const attributes = await getAttributesFromDb(id);
+ *     return { id, roles, attributes };
  *   },
  * );
  *
@@ -75,12 +75,12 @@ export class PrincipalProvider<
    */
   readonly #resolver: (
     this: PrincipalProvider<TRoles, TAttributes>,
-    uid: string,
+    id: string,
   ) => PrincipalResult<TRoles, TAttributes>;
 
   /**
    * Canonical Zod schema for a principal object, combining:
-   *   - `uid`: string identifier
+   *   - `id`: string identifier
    *   - `roles`: validated against {@link role}
    *   - `attributes`: validated against {@link attributes}
    *
@@ -90,14 +90,14 @@ export class PrincipalProvider<
    * Example:
    * ```ts
    * provider.schema.parse({
-   *   uid: "123",
+   *   id: "123",
    *   roles: ["admin"],
    *   attributes: { department: "sales", region: "eu" },
    * });
    * ```
    */
   readonly schema: ZodObject<{
-    uid: ZodString;
+    id: ZodString;
     roles: ZodArray<TRoles>;
     attributes: ZodObject<TAttributes>;
   }>;
@@ -120,20 +120,20 @@ export class PrincipalProvider<
    *
    * @param roles      - Zod union defining the set of valid roles.
    * @param attributes - Zod shape defining the attributes schema.
-   * @param resolver   - Function that resolves a principal by UID.
+   * @param resolver   - Function that resolves a principal by ID.
    */
   constructor(
     roles: TRoles,
     attributes: TAttributes,
     resolver: (
       this: PrincipalProvider<TRoles, TAttributes>,
-      uid: string,
+      id: string,
     ) => PrincipalResult<TRoles, TAttributes>,
   ) {
     this.roles = roles;
     this.attributes = z.object(attributes);
     this.schema = z.object({
-      uid: z.string(),
+      id: z.string(),
       roles: z.array(roles),
       attributes: z.object(attributes),
     });
@@ -146,22 +146,22 @@ export class PrincipalProvider<
    * Delegates to the resolver function provided at construction, ensuring
    * results are validated against the internal schema.
    *
-   * @param uid - The unique identifier of the principal.
+   * @param id - The unique identifier of the principal.
    *
-   * @returns A `Principal` or `Promise<Principal>` including UID, roles,
+   * @returns A `Principal` or `Promise<Principal>` including ID, roles,
    *          and attributes.
    *
    * @throws If the resolver function rejects or returns invalid data.
    */
-  resolve(uid: string): PrincipalResult<TRoles, TAttributes> {
-    return this.#resolver(uid);
+  resolve(id: string): PrincipalResult<TRoles, TAttributes> {
+    return this.#resolver(id);
   }
 }
 
 /**
  * A helper type describing the contract for principal resolvers.
  *
- * A principal resolver is responsible for looking up a principal by its UID
+ * A principal resolver is responsible for looking up a principal by its ID
  * and returning a full `Principal` object (synchronously or asynchronously).
  *
  * This type is primarily used internally by {@link PrincipalProvider} to
@@ -214,7 +214,7 @@ export type AnyPrincipal = Principal<ZodUnion, ZodRawShape>;
  * type Attributes = { department: z.ZodString; region: z.ZodString };
  *
  * const principal: Principal<Role, Attributes> = {
- *   uid: "123e4567-e89b-12d3-a456-426614174000",
+ *   id: "123e4567-e89b-12d3-a456-426614174000",
  *   roles: ["admin"],
  *   attributes: { department: "Engineering", region: "EMEA" },
  * };
@@ -228,7 +228,7 @@ export type Principal<
    * Examples: Windows user SID, Active Directory DN, AWS user ARN, or
    * database user UUID.
    */
-  uid: string;
+  id: string;
 
   /**
    * List of roles assigned to the principal.
@@ -252,16 +252,16 @@ export type Principal<
  * A function type that resolves a principal by its unique identifier.
  *
  * This resolver is responsible for retrieving all relevant metadata for a principal,
- * including both roles and attributes, based on their UID.
+ * including both roles and attributes, based on their ID.
  *
  * @template TRole       - A union of string literals representing roles assignable to the principal.
  * @template TAttributes - A record of key/value pairs representing fine-grained attributes for policy evaluation.
  *
- * @param uid - The unique identifier of the principal to resolve.
+ * @param id - The unique identifier of the principal to resolve.
  *
  * @returns A promise that resolves to a fully populated `Principal` object
  *          containing:
- *            - `uid`: The principal's unique identifier.
+ *            - `id`: The principal's unique identifier.
  *            - `roles`: All roles assigned to the principal.
  *            - `attributes`: Fine-grained attributes used for access control.
  *
@@ -269,10 +269,10 @@ export type Principal<
  *         if roles or attributes cannot be retrieved.
  *
  * @example
- * const getPrincipal: PrincipalResolver<MyRoles, MyAttributes> = async (uid) => {
- *   const roles = await getRolesForUser(uid);
- *   const attributes = await getAttributesForUser(uid);
- *   return { uid, roles, attributes };
+ * const getPrincipal: PrincipalResolver<MyRoles, MyAttributes> = async (id) => {
+ *   const roles = await getRolesForUser(id);
+ *   const attributes = await getAttributesForUser(id);
+ *   return { id, roles, attributes };
  * };
  *
  * const principal = await getPrincipal("123e4567-e89b-12d3-a456-426614174000");
@@ -281,7 +281,7 @@ export type PrincipalResolver<
   TRole extends ZodUnion,
   TAttributes extends ZodRawShape,
 > = (
-  uid: string,
+  id: string,
 ) =>
   | Promise<Principal<TRole, TAttributes> | undefined>
   | Principal<TRole, TAttributes>
