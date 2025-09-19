@@ -5,14 +5,14 @@ import { ResourceRegistry } from "../../libraries/resources.ts";
 export const resources = new ResourceRegistry([
   {
     kind: "user",
-    attributes: {
+    attr: {
       tenantId: z.string(),
       public: z.boolean(),
     },
   },
   {
     kind: "post",
-    attributes: {
+    attr: {
       owner: z.string(),
     },
   },

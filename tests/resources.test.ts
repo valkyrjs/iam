@@ -9,7 +9,7 @@ describe("Resources", () => {
     const resources = new ResourceRegistry([
       {
         kind: "user",
-        attributes: {
+        attr: {
           public: z.boolean(),
         },
       },
@@ -20,7 +20,7 @@ describe("Resources", () => {
     assertObjectMatch(resources.parse("user", id, { public: true }), {
       kind: "user",
       id,
-      attributes: {
+      attr: {
         public: true,
       },
     });

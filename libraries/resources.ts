@@ -18,25 +18,25 @@ export type AnyResourceRegistry = ResourceRegistry<AnyResourceSchema[]>;
  *
  * @example
  * const registry = new ResourceRegistry([
- *   { kind: "employee", attributes: { public: z.boolean() } },
- *   { kind: "document", attributes: { ownerId: z.string() } }
+ *   { kind: "employee", attr: { public: z.boolean() } },
+ *   { kind: "document", attr: { ownerId: z.string() } }
  * ]);
  *
  * // Check if a kind is registered
  * registry.has("employee"); // true
  *
  * // Retrieve the schema for validation
- * const { attributes } = registry.get("document");
- * attributes.parse({ ownerId: "abc" }); // ✅
+ * const { attr } = registry.get("document");
+ * attr.parse({ ownerId: "abc" }); // ✅
  *
  * // Parse a full resource instance
  * const doc = registry.parse("document", "doc-123", { ownerId: "abc" });
- * // => { kind: "document", id: "doc-123", attributes: { ownerId: "abc" } }
+ * // => { kind: "document", id: "doc-123", attr: { ownerId: "abc" } }
  */
 export class ResourceRegistry<TResources extends AnyResourceSchema[]> {
   readonly #index = new Map<
     TResources[number]["kind"],
-    ZodObject<TResources[number]["attributes"]>
+    ZodObject<TResources[number]["attr"]>
   >();
 
   /**
@@ -64,7 +64,7 @@ export class ResourceRegistry<TResources extends AnyResourceSchema[]> {
    */
   constructor(readonly resources: TResources) {
     for (const resource of resources) {
-      this.#index.set(resource.kind, z.object(resource.attributes));
+      this.#index.set(resource.kind, z.object(resource.attr));
     }
   }
 
@@ -84,7 +84,7 @@ export class ResourceRegistry<TResources extends AnyResourceSchema[]> {
    * @param kind - The resource kind to retrieve.
    * @returns An object containing:
    *   - `kind`: The resource kind.
-   *   - `attributes`: The Zod object schema for its attributes.
+   *   - `attr`: The Zod object schema for its attr.
    *
    * @throws {ResourceNotFoundError}
    *         If the resource kind has not been registered.
@@ -93,50 +93,50 @@ export class ResourceRegistry<TResources extends AnyResourceSchema[]> {
     kind: TKind,
   ): {
     kind: TKind;
-    attributes: ResourceAttributesParser<TResources, TKind>;
+    attr: ResourceAttributesParser<TResources, TKind>;
   } {
-    const attributes = this.#index.get(kind);
-    if (attributes === undefined) {
+    const attr = this.#index.get(kind);
+    if (attr === undefined) {
       throw new ResourceNotFoundError(kind);
     }
-    return { kind, attributes };
+    return { kind, attr };
   }
 
   /**
-   * Parse and validate the attributes of a resource instance.
+   * Parse and validate the attr of a resource instance.
    *
-   * Combines a resource’s `kind` and `id` with its validated attributes.
+   * Combines a resource’s `kind` and `id` with its validated attr.
    *
    * @param kind       - The resource kind.
    * @param id         - The unique identifier of the resource.
-   * @param attributes - Raw attributes to validate and parse.
+   * @param attr - Raw attr to validate and parse.
    *
    * @returns A fully validated {@link Resource}.
    *
    * @throws {ResourceNotFoundError}
    *         If the resource kind has not been registered.
    * @throws {ZodError}
-   *         If the attributes fail validation against the schema.
+   *         If the attr fail validation against the schema.
    */
   parse<TKind extends TResources[number]["kind"]>(
     kind: TKind,
     id: string,
-    attributes: ResourceAttributes<TResources, TKind>,
+    attr: ResourceAttributes<TResources, TKind>,
   ): {
     kind: TKind;
     id: string;
-    attributes: ResourceAttributes<TResources, TKind>;
+    attr: ResourceAttributes<TResources, TKind>;
   } {
     const resource = this.get(kind);
     return {
       kind,
       id,
-      attributes: resource.attributes.parse(attributes),
+      attr: resource.attr.parse(attr),
     } as {
       kind: TKind;
       id: string;
-      attributes: z.infer<
-        ZodObject<Extract<TResources[number], { kind: TKind }>["attributes"]>
+      attr: z.infer<
+        ZodObject<Extract<TResources[number], { kind: TKind }>["attr"]>
       >;
     };
   }
@@ -152,7 +152,7 @@ type AnyResourceSchema = ResourceSchema<string, ZodRawShape>;
 
 type ResourceSchema<TKind extends string, TAttributes extends ZodRawShape> = {
   kind: TKind;
-  attributes: TAttributes;
+  attr: TAttributes;
 };
 
 /**
@@ -164,7 +164,7 @@ type ResourceSchema<TKind extends string, TAttributes extends ZodRawShape> = {
 export type AnyResource = Resource<string, ZodRawShape>;
 
 /**
- * Defines a typed resource with a specific `kind` and attributes.
+ * Defines a typed resource with a specific `kind` and attr.
  *
  * @template TKind      - The resource kind.
  * @template TAttributes - The Zod attribute schema.
@@ -172,7 +172,7 @@ export type AnyResource = Resource<string, ZodRawShape>;
 export type Resource<TKind extends string, TAttributes extends ZodRawShape> = {
   kind: TKind;
   id: string;
-  attributes: z.infer<ZodObject<TAttributes>>;
+  attr: z.infer<ZodObject<TAttributes>>;
 };
 
 type ResourceAttributes<
@@ -183,4 +183,4 @@ type ResourceAttributes<
 type ResourceAttributesParser<
   TResources extends AnyResourceSchema[],
   TKind extends TResources[number]["kind"],
-> = ZodObject<Extract<TResources[number], { kind: TKind }>["attributes"]>;
+> = ZodObject<Extract<TResources[number], { kind: TKind }>["attr"]>;
