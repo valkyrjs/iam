@@ -57,6 +57,7 @@ import type {
 } from "./access.ts";
 import type { AnyPrincipal, AnyPrincipalProvider } from "./principal.ts";
 import type { AnyResourceRegistry } from "./resources.ts";
+import { Prettify } from "./types.ts";
 
 /**
  * Provides a solution to manage user authentication and access control rights within an
@@ -75,6 +76,18 @@ export class Auth<
   declare $principal: TPrincipalProvider["$principal"];
   declare $resources: TResourceRegistry["$resource"][];
   declare $access: TAccessControlProvider;
+  declare $session: Prettify<
+    Omit<
+      Extract<
+        SessionResolution<
+          TPrincipalProvider["$principal"],
+          TAccessControlProvider
+        >,
+        { valid: true }
+      >,
+      "valid"
+    >
+  >;
 
   constructor(
     readonly config: Config<
@@ -249,11 +262,6 @@ type Config<
   };
 };
 
-export type ResolvedSession<TAuth extends AnyAuth> = Extract<
-  SessionResolution<TAuth["$principal"], TAuth["$access"]>,
-  { valid: true }
->;
-
 export type SessionResolution<
   TPrincipal extends AnyPrincipal,
   TAccessControlProvider extends AccessControlProvider<TPrincipal>,
@@ -277,9 +285,3 @@ export type SessionResolution<
       code: string;
       message: string;
     };
-
-type AnyAuth = Auth<
-  AnyPrincipalProvider,
-  AnyResourceRegistry,
-  AnyAccessControlProvider
->;

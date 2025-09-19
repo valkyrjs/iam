@@ -7,6 +7,8 @@ import {
   type ZodUnion,
 } from "zod";
 
+import { Prettify } from "./types.ts";
+
 export type AnyPrincipalProvider = PrincipalProvider<any, any>;
 
 /**
@@ -102,7 +104,7 @@ export class PrincipalProvider<
     attributes: ZodObject<TAttributes>;
   }>;
 
-  declare $principal: Principal<TRoles, TAttributes>;
+  declare $principal: Prettify<Principal<TRoles, TAttributes>>;
 
   /**
    * Convenience type alias for inferred attributes, available in

@@ -24,3 +24,5 @@ export const auth = new Auth({
     audience: "https://valkyrjs.com",
   },
 });
+
+export type Session = typeof auth.$session;
