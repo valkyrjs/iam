@@ -12,6 +12,7 @@ describe("Resources", () => {
         attr: {
           public: z.boolean(),
         },
+        actions: ["read"],
       },
     ] as const);
 

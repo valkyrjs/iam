@@ -67,7 +67,27 @@ describe("Auth", () => {
       throw new Error("Expected valid session!");
     }
 
-    assertEquals(session.access.isAllowed("tenant-id"), true);
-    assertEquals(session.access.isAllowed("non-tenant-id"), false);
+    assertEquals(
+      session.access.isAllowed(
+        {
+          kind: "user",
+          id: crypto.randomUUID(),
+          attr: { tenantId: "tenant-id", public: false },
+        },
+        "read",
+      ),
+      true,
+    );
+    assertEquals(
+      session.access.isAllowed(
+        {
+          kind: "user",
+          id: crypto.randomUUID(),
+          attr: { tenantId: "non-tenant-id", public: false },
+        },
+        "read",
+      ),
+      false,
+    );
   });
 });

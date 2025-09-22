@@ -1,6 +1,7 @@
 import { z, type ZodObject, type ZodRawShape } from "zod";
 
 import { ResourceNotFoundError } from "./errors.ts";
+import { Prettify } from "./types.ts";
 
 export type AnyResourceRegistry = ResourceRegistry<AnyResourceSchema[]>;
 
@@ -36,7 +37,10 @@ export type AnyResourceRegistry = ResourceRegistry<AnyResourceSchema[]>;
 export class ResourceRegistry<TResources extends AnyResourceSchema[]> {
   readonly #index = new Map<
     TResources[number]["kind"],
-    ZodObject<TResources[number]["attr"]>
+    {
+      attr: ZodObject<TResources[number]["attr"]>;
+      actions: TResources[number]["actions"];
+    }
   >();
 
   /**
@@ -49,8 +53,17 @@ export class ResourceRegistry<TResources extends AnyResourceSchema[]> {
    * ```
    */
   declare $resource: TResources[number] extends infer TResource
-    ? TResource extends ResourceSchema<infer TKind, infer TAttributes>
-      ? Resource<TKind, TAttributes>
+    ? TResource extends ResourceSchema<infer TKind, infer TAttributes, any>
+      ? Prettify<Resource<TKind, TAttributes>>
+      : never
+    : never;
+
+  declare $action: TResources[number] extends infer TResource
+    ? TResource extends ResourceSchema<infer TKind, any, infer TActions>
+      ? {
+          kind: TKind;
+          actions: TActions[number][];
+        }
       : never
     : never;
 
@@ -64,7 +77,10 @@ export class ResourceRegistry<TResources extends AnyResourceSchema[]> {
    */
   constructor(readonly resources: TResources) {
     for (const resource of resources) {
-      this.#index.set(resource.kind, z.object(resource.attr));
+      this.#index.set(resource.kind, {
+        attr: z.object(resource.attr),
+        actions: resource.actions,
+      });
     }
   }
 
@@ -94,12 +110,13 @@ export class ResourceRegistry<TResources extends AnyResourceSchema[]> {
   ): {
     kind: TKind;
     attr: ResourceAttributesParser<TResources, TKind>;
+    actions: ResourceActions<TResources, TKind>;
   } {
-    const attr = this.#index.get(kind);
-    if (attr === undefined) {
+    const resource = this.#index.get(kind);
+    if (resource === undefined) {
       throw new ResourceNotFoundError(kind);
     }
-    return { kind, attr };
+    return { kind, ...resource };
   }
 
   /**
@@ -107,8 +124,8 @@ export class ResourceRegistry<TResources extends AnyResourceSchema[]> {
    *
    * Combines a resource’s `kind` and `id` with its validated attr.
    *
-   * @param kind       - The resource kind.
-   * @param id         - The unique identifier of the resource.
+   * @param kind - The resource kind.
+   * @param id   - The unique identifier of the resource.
    * @param attr - Raw attr to validate and parse.
    *
    * @returns A fully validated {@link Resource}.
@@ -148,11 +165,21 @@ export class ResourceRegistry<TResources extends AnyResourceSchema[]> {
  |--------------------------------------------------------------------------------
  */
 
-type AnyResourceSchema = ResourceSchema<string, ZodRawShape>;
+type AnyResourceSchema = ResourceSchema<string, ZodRawShape, Array<any>>;
 
-type ResourceSchema<TKind extends string, TAttributes extends ZodRawShape> = {
+type ResourceSchema<
+  TKind extends string,
+  TAttributes extends ZodRawShape,
+  TActions extends Array<any>,
+> = {
   kind: TKind;
   attr: TAttributes;
+  actions: TActions;
+};
+
+export type AnyAction = {
+  kind: any;
+  actions: any[];
 };
 
 /**
@@ -184,3 +211,8 @@ type ResourceAttributesParser<
   TResources extends AnyResourceSchema[],
   TKind extends TResources[number]["kind"],
 > = ZodObject<Extract<TResources[number], { kind: TKind }>["attr"]>;
+
+type ResourceActions<
+  TResources extends AnyResourceSchema[],
+  TKind extends TResources[number]["kind"],
+> = Extract<TResources[number], { kind: TKind }>["actions"];
