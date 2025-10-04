@@ -1,23 +1,51 @@
 {
-  "name": "@valkyr/auth",
-  "version": "2.1.5",
-  "exports": {
-    ".": "./mod.ts"
-  },
-  "publish": {
-    "exclude": [
-      ".github",
-      ".vscode",
-      ".gitignore",
-      "tests"
-    ]
+  "nodeModulesDir": "auto",
+  "version": "0.0.0",
+  "workspace": [
+    "./modules/auth",
+    "./modules/principal",
+    "./modules/tenant",
+    "./modules/user",
+    "./modules/verification",
+    "./platform/config",
+    "./platform/database",
+    "./platform/logger",
+    "./platform/relay",
+    "./platform/server",
+    "./server"
+  ],
+  "imports": {
+    "@modules/auth": "./modules/auth/mod.ts",
+    "@modules/principal": "./modules/principal/mod.ts",
+    "@modules/tenant": "./modules/tenant/mod.ts",
+    "@modules/user": "./modules/user/mod.ts",
+    "@modules/verification": "./modules/verification/mod.ts",
+    "@platform/config": "./platform/config/mod.ts",
+    "@platform/database": "./platform/database/mod.ts",
+    "@platform/logger": "./platform/logger/mod.ts",
+    "@platform/relay": "./platform/relay/mod.ts",
+    "@platform/server": "./platform/server/mod.ts"
   },
   "tasks": {
-    "check": "deno check ./mod.ts ./tests",
-    "lint": "npx eslint -c eslint.config.mjs .",
-    "test": "deno test --allow-all",
-    "test:publish": "deno publish --dry-run",
-    "ncu": "npx ncu -u -p npm"
-  },
-  "nodeModulesDir": "auto"
+    "start": {
+      "command": "deno run -A ./server/start.ts",
+      "description": "Starts the IAM service enabling API access to its functionality."
+    },
+    "migrate": {
+      "command": "deno run -A ./server/migrate.ts",
+      "description": "Runs data migrations on the configured database."
+    },
+    "rollback": {
+      "command": "deno run -A ./server/rollback.ts",
+      "description": "Runs data rollback on the configured database."
+    },
+    "check": {
+      "command": "deno run -A npm:@biomejs/biome check --write .",
+      "description": "Format, lint, and organize imports of the entire repository."
+    },
+    "test": {
+      "command": "deno test --allow-all",
+      "description": "Runs all defined tests across the entire repository."
+    }
+  }
 }

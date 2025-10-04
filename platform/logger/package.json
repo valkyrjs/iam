@@ -1,0 +1,15 @@
+{
+  "name": "@platform/logger",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./mod.ts",
+  "exports": {
+    ".": "./mod.ts"
+  },
+  "dependencies": {
+    "@platform/config": "workspace:*",
+    "@valkyr/event-store": "npm:@jsr/valkyr__event-store@2.0.1",
+    "zod": "4.1.11"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "name": "server",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@modules/principal": "workspace:*",
+    "@modules/tenant": "workspace:*",
+    "@modules/user": "workspace:*",
+    "@platform/config": "workspace:*",
+    "@platform/database": "workspace:*",
+    "@std/path": "npm:@jsr/std__path@1.1.2",
+    "zod": "4.1.11"
+  }
+}

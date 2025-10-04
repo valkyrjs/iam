@@ -1,0 +1,43 @@
+services:
+
+  # Postgres
+  # --------------------------------------------------------------------------------
+  # Used by better-auth, event-store, and iam modules for persited storage.
+
+  postgres:
+    image: postgres:18
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_DB: iam
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - iam
+
+  # Cerbos
+  # --------------------------------------------------------------------------------
+  # Policy engine for application access control.
+
+  cerbos:
+    image: ghcr.io/cerbos/cerbos:latest
+    command: ["server", "--config=/config.yaml"]
+    ports:
+      - "3592:3592"
+      - "3593:3593"
+      - "3594:3594"
+    volumes:
+      - ./cerbos.yaml:/config.yaml
+      - ./policies:/data/policies
+    networks:
+      - iam
+
+volumes:
+  pgdata:
+
+networks:
+  iam:
+    driver: bridge

@@ -1,0 +1,16 @@
+{
+  "name": "@platform/database",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./mod.ts",
+  "exports": {
+    ".": "./mod.ts"
+  },
+  "dependencies": {
+    "@platform/config": "workspace:*",
+    "@std/fs": "npm:@jsr/std__fs@1.0.19",
+    "postgres": "3.4.7",
+    "zod": "4.1.11"
+  }
+}

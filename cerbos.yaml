@@ -1,0 +1,14 @@
+server:
+  adminAPI:
+    enabled: true
+    adminCredentials:
+      username: cerbos
+      passwordHash: JDJ5JDEwJDc5VzBkQ0NUWHFTT3N1OW9xZkx5ZC43M0tuM0JBSTU0dVRsMVBkOEtuYVBCaWFzVXk5d0phCgo=
+  httpListenAddr: ":3592"
+  grpcListenAddr: ":3593"
+
+storage:
+  driver: disk
+  disk:
+    directory: /data/policies
+    watchForChanges: true

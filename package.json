@@ -1,14 +1,5 @@
 {
-  "dependencies": {
-    "jose": "6",
-    "zod": "4"
-  },
   "devDependencies": {
-    "@std/assert": "npm:@jsr/std__assert@1.0.12",
-    "@std/testing": "npm:@jsr/std__testing@1.0.11",
-    "eslint": "9.24.0",
-    "eslint-plugin-simple-import-sort": "12.1.1",
-    "prettier": "3.5.3",
-    "typescript-eslint": "8.30.1"
+    "@biomejs/biome": "2.2.4"
   }
 }
