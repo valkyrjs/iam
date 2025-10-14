@@ -12,6 +12,7 @@
     "./platform/logger",
     "./platform/relay",
     "./platform/server",
+    "./platform/vault",
     "./server"
   ],
   "imports": {
@@ -24,7 +25,8 @@
     "@platform/database": "./platform/database/mod.ts",
     "@platform/logger": "./platform/logger/mod.ts",
     "@platform/relay": "./platform/relay/mod.ts",
-    "@platform/server": "./platform/server/mod.ts"
+    "@platform/server": "./platform/server/mod.ts",
+    "@platform/vault": "./platform/vault/mod.ts"
   },
   "tasks": {
     "start": {

@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@platform/config": "workspace:*",
-    "@valkyr/event-store": "npm:@jsr/valkyr__event-store@2.0.1",
+    "@valkyr/event-store": "npm:@jsr/valkyr__event-store@2.0.2",
     "zod": "4.1.11"
   }
 }

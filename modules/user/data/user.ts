@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { ContactSchema, Contacts } from "./value-objects/contact.ts";
+import { Contacts } from "./value-objects/contact.ts";
 import { NameSchema, UserName } from "./value-objects/name.ts";
 
 /*
@@ -10,9 +10,8 @@ import { NameSchema, UserName } from "./value-objects/name.ts";
  */
 
 export const UserInsertSchema = z.object({
-  tenantId: z.string(),
   name: NameSchema,
-  contacts: z.array(ContactSchema).min(1),
+  email: z.string(),
 });
 
 export const UserSchema = UserInsertSchema.extend({

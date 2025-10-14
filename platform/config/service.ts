@@ -7,6 +7,23 @@ import { InvalidServiceEnvironmentError } from "./errors.ts";
 export const SERVICE_ENV = ["local", "testing", "feature", "staging", "production"] as const;
 
 /**
+ * Check if current environment matches one of the given environments.
+ *
+ * @param envs - Environments to check.
+ *
+ * @example
+ * ```ts
+ * if (isServiceEnv(["local", "testing"])) {
+ *   // do something ...
+ * }
+ * ```
+ */
+export function isServiceEnv(envs: ServiceEnvironment[]): boolean {
+  const env = getServiceEnvironment();
+  return envs.some((value) => value === env);
+}
+
+/**
  * Get the current service environment for the application.
  *
  * This function attempts to read the environment variable `SERVICE_ENV` from

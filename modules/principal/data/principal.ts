@@ -24,7 +24,6 @@ const MetaSchema = z.record(z.string(), z.any());
 
 export const PrincipalInsertSchema = z.object({
   id: z.string(),
-  tenantId: z.string(),
   type: z.enum(PrincipalType),
   roles: RolesSchema.default([]),
   attr: AttrSchema.default({}),
@@ -33,7 +32,6 @@ export const PrincipalInsertSchema = z.object({
 
 export const PrincipalSchema = z.object({
   id: z.string(),
-  tenantId: z.string(),
   type: z.enum(PrincipalType),
   roles: z.string().transform((roles) => RolesSchema.parse(JSON.parse(roles))),
   attr: z.string().transform((attr) => AttrSchema.parse(JSON.parse(attr))),

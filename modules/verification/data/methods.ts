@@ -13,7 +13,7 @@ import {
  * @param verification - Verification details.
  * @param options      - Database query options.
  */
-export async function createVeficication(
+export async function createVerification(
   verification: VerificationInsert,
   { tx }: Options = {},
 ): Promise<Verification> {

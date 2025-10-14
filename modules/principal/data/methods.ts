@@ -9,14 +9,13 @@ import { type Principal, type PrincipalInsert, PrincipalInsertSchema, PrincipalS
  * @param options   - Database query options.
  */
 export async function createPrincipal(principal: PrincipalInsert, { tx }: Options = {}): Promise<Principal> {
-  const { tenantId, type, roles, attr, meta } = PrincipalInsertSchema.parse(principal);
+  const { type, roles, attr, meta } = PrincipalInsertSchema.parse(principal);
   return (tx ?? client)`
     INSERT INTO ${schema()}."principal"
-      (id, "tenantId", type, roles, attr, meta)
+      (id, type, roles, attr, meta)
     VALUES
       (
         ${crypto.randomUUID()},
-        ${tenantId},
         ${type},
         ${JSON.stringify(roles)},
         ${JSON.stringify(attr)},

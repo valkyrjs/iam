@@ -9,16 +9,23 @@ import { type User, type UserInsert, UserInsertSchema, UserSchema } from "./user
  * @param options - Database query options.
  */
 export async function createUser(user: UserInsert, { tx }: Options = {}): Promise<User> {
-  const { name, contacts } = UserInsertSchema.parse(user);
+  const { name, email } = UserInsertSchema.parse(user);
   return (tx ?? client)`
     INSERT INTO ${schema()}."user" 
-      (id, "tenantId", name, contacts, "createdAt", "updatedAt") 
+      (id, name, email, "emailVerified", contacts, "createdAt", "updatedAt") 
     VALUES 
       (
         ${crypto.randomUUID()},
-        ${user.tenantId},
         ${JSON.stringify(name)},
-        ${JSON.stringify(contacts)},
+        ${email},
+        ${false},
+        ${JSON.stringify([
+          {
+            type: "email",
+            value: email,
+            primary: true,
+          },
+        ])},
         ${new Date()},
         ${new Date()}
       ) 

@@ -1,11 +1,7 @@
-import type { RouteOptions as HapiOptions } from "@hapi/hapi";
-import type { RequestContext } from "@platform/request/context.ts";
-import type { DeveloperTeam } from "@spec/shared/developer.ts";
 import { type MatchFunction, match } from "path-to-regexp";
-import z, { type ZodObject, type ZodRawShape, type ZodType } from "zod/v4";
+import z, { type ZodObject, type ZodRawShape, type ZodType } from "zod";
 
 import { ServerError, type ServerErrorClass } from "./errors.ts";
-import type { Hooks } from "./hooks.ts";
 
 export class Route<const TState extends RouteState = RouteState> {
   readonly type = "route" as const;
@@ -70,23 +66,6 @@ export class Route<const TState extends RouteState = RouteState> {
       return {} as TParams;
     }
     return result.params as TParams;
-  }
-
-  /**
-   * Set the primary owners responsible for managing this route.
-   *
-   * @param owner - Owner to set on the route.
-   *
-   * @examples
-   *
-   * ```ts
-   * route.post("/foo").owner("platform");
-   * ```
-   */
-  owner<TDeveloperTeam extends DeveloperTeam>(
-    owner: TDeveloperTeam,
-  ): Route<Omit<TState, "owner"> & { owner: TDeveloperTeam }> {
-    return new Route({ ...this.state, owner });
   }
 
   /**
@@ -229,28 +208,6 @@ export class Route<const TState extends RouteState = RouteState> {
   }
 
   /**
-   * HAPI route options passed to hapi request context.
-   *
-   * @param hapi - HAPI options.
-   *
-   * @examples
-   *
-   * ```ts
-   * route
-   *   .post("/foo")
-   *   .hapi({
-   *     ...options
-   *   })
-   *   .handle(async () => {
-   *     // handler code
-   *   });
-   * ```
-   */
-  hapi<THapiOptions extends HapiOptions>(hapi: THapiOptions): Route<Omit<TState, "hapi"> & { hapi: THapiOptions }> {
-    return new Route({ ...this.state, hapi });
-  }
-
-  /**
    * Instances of the possible error responses this route produces.
    *
    * @param errors - Error shapes of the route.
@@ -341,19 +298,6 @@ export class Route<const TState extends RouteState = RouteState> {
   ): Route<Omit<TState, "handle"> & { handle: THandleFn }> {
     return new Route({ ...this.state, handle });
   }
-
-  /**
-   * Assign lifetime hooks to a route allowing for custom handling of
-   * events that can occur during a request or response.
-   *
-   * Can be used on both server and client with the appropriate
-   * implementation.
-   *
-   * @param hooks - Hooks to register with the route.
-   */
-  hooks<THooks extends Hooks>(hooks: THooks): Route<Omit<TState, "hooks"> & { hooks: THooks }> {
-    return new Route({ ...this.state, hooks });
-  }
 }
 
 /*
@@ -368,19 +312,19 @@ export class Route<const TState extends RouteState = RouteState> {
 export const route: {
   post<TPath extends string>(
     path: TPath,
-  ): Route<{ method: "POST"; path: TPath; content: "json"; errors: [ServerErrorClass] }>;
+  ): Route<{ method: "POST"; path: TPath; access: "authenticated"; errors: [ServerErrorClass] }>;
   get<TPath extends string>(
     path: TPath,
-  ): Route<{ method: "GET"; path: TPath; content: "json"; errors: [ServerErrorClass] }>;
+  ): Route<{ method: "GET"; path: TPath; access: "authenticated"; errors: [ServerErrorClass] }>;
   put<TPath extends string>(
     path: TPath,
-  ): Route<{ method: "PUT"; path: TPath; content: "json"; errors: [ServerErrorClass] }>;
+  ): Route<{ method: "PUT"; path: TPath; access: "authenticated"; errors: [ServerErrorClass] }>;
   patch<TPath extends string>(
     path: TPath,
-  ): Route<{ method: "PATCH"; path: TPath; content: "json"; errors: [ServerErrorClass] }>;
+  ): Route<{ method: "PATCH"; path: TPath; access: "authenticated"; errors: [ServerErrorClass] }>;
   delete<TPath extends string>(
     path: TPath,
-  ): Route<{ method: "DELETE"; path: TPath; content: "json"; errors: [ServerErrorClass] }>;
+  ): Route<{ method: "DELETE"; path: TPath; access: "authenticated"; errors: [ServerErrorClass] }>;
 } = {
   /**
    * Create a new "POST" route for the given path.
@@ -398,7 +342,7 @@ export const route: {
    * ```
    */
   post<TPath extends string>(path: TPath) {
-    return new Route({ method: "POST", path, content: "json", errors: [ServerError] });
+    return new Route({ method: "POST", path, access: "authenticated", errors: [ServerError] });
   },
 
   /**
@@ -413,7 +357,7 @@ export const route: {
    * ```
    */
   get<TPath extends string>(path: TPath) {
-    return new Route({ method: "GET", path, content: "json", errors: [ServerError] });
+    return new Route({ method: "GET", path, access: "authenticated", errors: [ServerError] });
   },
 
   /**
@@ -432,7 +376,7 @@ export const route: {
    * ```
    */
   put<TPath extends string>(path: TPath) {
-    return new Route({ method: "PUT", path, content: "json", errors: [ServerError] });
+    return new Route({ method: "PUT", path, access: "authenticated", errors: [ServerError] });
   },
 
   /**
@@ -451,7 +395,7 @@ export const route: {
    * ```
    */
   patch<TPath extends string>(path: TPath) {
-    return new Route({ method: "PATCH", path, content: "json", errors: [ServerError] });
+    return new Route({ method: "PATCH", path, access: "authenticated", errors: [ServerError] });
   },
 
   /**
@@ -466,7 +410,7 @@ export const route: {
    * ```
    */
   delete<TPath extends string>(path: TPath) {
-    return new Route({ method: "DELETE", path, content: "json", errors: [ServerError] });
+    return new Route({ method: "DELETE", path, access: "authenticated", errors: [ServerError] });
   },
 };
 
@@ -485,17 +429,14 @@ export type RouteFn = (...args: any[]) => any;
 type RouteState = {
   method: RouteMethod;
   path: string;
-  owner?: DeveloperTeam;
+  access: RouteAccess;
   meta?: RouteMeta;
-  access?: RouteAccess;
   params?: ZodObject;
   query?: ZodObject;
   body?: ZodType;
-  hapi?: HapiOptions;
   output?: ZodType;
   errors: ServerErrorClass[];
   handle?: HandleFn;
-  hooks?: Hooks;
 };
 
 export type RouteMeta = {
@@ -507,9 +448,7 @@ export type RouteMeta = {
 
 export type RouteMethod = "POST" | "GET" | "PUT" | "PATCH" | "DELETE";
 
-export type RouteAccess = "public" | "session" | ["internal:public", string] | ["internal:session", string];
-
-export type AccessFn = (resource: string, action: string) => () => boolean;
+export type RouteAccess = "public" | "authenticated";
 
 type HandleFn<TArgs extends Array<any> = any[], TResponse = any> = (
   ...args: TArgs
@@ -533,3 +472,5 @@ type HasInputArgs<TState extends RouteState> = TState["params"] extends ZodObjec
     : TState["body"] extends ZodType
       ? true
       : false;
+
+type RequestContext = {};
