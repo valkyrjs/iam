@@ -9,6 +9,6 @@
   },
   "dependencies": {
     "@std/dotenv": "npm:@jsr/std__dotenv@0.225.5",
-    "zod": "4.1.11"
+    "zod": "4.1.12"
   }
 }

@@ -6,9 +6,18 @@ import z from "zod";
  |--------------------------------------------------------------------------------
  */
 
-export const TenantSchema = z.object({
+export const VerificationInsertSchema = z.object({
+  identifier: z.string(),
+  value: z.string(),
+});
+
+export const VerificationSchema = z.object({
   id: z.string(),
+  identifier: z.string(),
+  value: z.string(),
   createdAt: z.coerce.date(),
+  updatedAt: z.coerce.date(),
+  expiresAt: z.coerce.date(),
 });
 
 /*
@@ -17,4 +26,5 @@ export const TenantSchema = z.object({
  |--------------------------------------------------------------------------------
  */
 
-export type Tenant = z.infer<typeof TenantSchema>;
+export type VerificationInsert = z.input<typeof VerificationInsertSchema>;
+export type Verification = z.infer<typeof VerificationSchema>;

@@ -10,6 +10,6 @@
   "dependencies": {
     "@platform/logger": "workspace:*",
     "@platform/relay": "workspace:*",
-    "zod": "4.1.11"
+    "zod": "4.1.12"
   }
 }

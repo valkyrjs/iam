@@ -1,6 +1,7 @@
 import { type MatchFunction, match } from "path-to-regexp";
 import z, { type ZodObject, type ZodRawShape, type ZodType } from "zod";
 
+import type { RequestContext } from "./context.ts";
 import { ServerError, type ServerErrorClass } from "./errors.ts";
 
 export class Route<const TState extends RouteState = RouteState> {
@@ -79,7 +80,7 @@ export class Route<const TState extends RouteState = RouteState> {
    * route.post("/foo").meta({ description: "Super route" });
    * ```
    */
-  meta<TRouteMeta extends RouteMeta>(meta: TRouteMeta): Route<Omit<TState, "meta"> & { meta: TRouteMeta }> {
+  meta<TRouteMeta extends RouteMeta>(meta: TRouteMeta): Route<Prettify<Omit<TState, "meta"> & { meta: TRouteMeta }>> {
     return new Route({ ...this.state, meta });
   }
 
@@ -132,7 +133,7 @@ export class Route<const TState extends RouteState = RouteState> {
    *   });
    * ```
    */
-  access<TAccess extends RouteAccess>(access: TAccess): Route<Omit<TState, "access"> & { access: TAccess }> {
+  access<TAccess extends RouteAccess>(access: TAccess): Route<Prettify<Omit<TState, "access"> & { access: TAccess }>> {
     return new Route({ ...this.state, access: access as TAccess });
   }
 
@@ -155,7 +156,9 @@ export class Route<const TState extends RouteState = RouteState> {
    *   });
    * ```
    */
-  params<TParams extends ZodRawShape>(params: TParams): Route<Omit<TState, "params"> & { params: ZodObject<TParams> }> {
+  params<TParams extends ZodRawShape>(
+    params: TParams,
+  ): Route<Prettify<Omit<TState, "params"> & { params: ZodObject<TParams> }>> {
     return new Route({ ...this.state, params: z.object(params) as any });
   }
 
@@ -178,7 +181,9 @@ export class Route<const TState extends RouteState = RouteState> {
    *   });
    * ```
    */
-  query<TQuery extends ZodRawShape>(query: TQuery): Route<Omit<TState, "search"> & { query: ZodObject<TQuery> }> {
+  query<TQuery extends ZodRawShape>(
+    query: TQuery,
+  ): Route<Prettify<Omit<TState, "search"> & { query: ZodObject<TQuery> }>> {
     return new Route({ ...this.state, query: z.strictObject(query) as any });
   }
 
@@ -203,7 +208,7 @@ export class Route<const TState extends RouteState = RouteState> {
    *   });
    * ```
    */
-  body<TBody extends ZodType>(body: TBody): Route<Omit<TState, "body"> & { body: TBody }> {
+  body<TBody extends ZodType>(body: TBody): Route<Prettify<Omit<TState, "body"> & { body: TBody }>> {
     return new Route({ ...this.state, body });
   }
 
@@ -225,7 +230,9 @@ export class Route<const TState extends RouteState = RouteState> {
    *   });
    * ```
    */
-  errors<TErrors extends ServerErrorClass[]>(errors: TErrors): Route<Omit<TState, "errors"> & { errors: TErrors }> {
+  errors<TErrors extends ServerErrorClass[]>(
+    errors: TErrors,
+  ): Route<Prettify<Omit<TState, "errors"> & { errors: TErrors }>> {
     return new Route({ ...this.state, errors });
   }
 
@@ -252,7 +259,9 @@ export class Route<const TState extends RouteState = RouteState> {
    * ```
    * @param output the response type from the method
    */
-  response<TResponse extends ZodType>(output: TResponse): Route<Omit<TState, "output"> & { output: TResponse }> {
+  response<TResponse extends ZodType>(
+    output: TResponse,
+  ): Route<Prettify<Omit<TState, "output"> & { output: TResponse }>> {
     return new Route({ ...this.state, output });
   }
 
@@ -295,7 +304,7 @@ export class Route<const TState extends RouteState = RouteState> {
    */
   handle<THandleFn extends HandleFn<ServerArgs<TState>, TState["output"]>>(
     handle: THandleFn,
-  ): Route<Omit<TState, "handle"> & { handle: THandleFn }> {
+  ): Route<Prettify<Omit<TState, "handle"> & { handle: THandleFn }>> {
     return new Route({ ...this.state, handle });
   }
 }
@@ -473,4 +482,6 @@ type HasInputArgs<TState extends RouteState> = TState["params"] extends ZodObjec
       ? true
       : false;
 
-type RequestContext = {};
+export type Prettify<T> = {
+  [K in keyof T]: T[K];
+} & {};

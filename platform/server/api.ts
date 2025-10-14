@@ -2,18 +2,16 @@ import { logger } from "@platform/logger";
 import {
   BadRequestError,
   context,
-  ForbiddenError,
   InternalServerError,
   NotFoundError,
   NotImplementedError,
   type Route,
   type RouteMethod,
   ServerError,
-  type ServerErrorResponse,
+  type ServerErrorJSON,
   UnauthorizedError,
   ValidationError,
 } from "@platform/relay";
-import { decrypt } from "@platform/vault";
 
 const SUPPORTED_MEHODS = ["GET", "POST", "PUT", "PATCH", "DELETE"];
 
@@ -98,7 +96,7 @@ export class Api {
     // Execute request and return a response.
 
     const response = await this.#getRouteResponse(resolved, request).catch((error) =>
-      this.#getErrorResponse(error, resolved.route, request),
+      this.#getErrorResponse(error, request),
     );
 
     return response;
@@ -164,29 +162,8 @@ export class Api {
       );
     }
 
-    if (route.state.access === "session" && context.isAuthenticated === false) {
+    if (route.state.access !== "public" && context.isAuthenticated === false) {
       return toResponse(new UnauthorizedError(), request);
-    }
-
-    if (Array.isArray(route.state.access)) {
-      const [access, privateKey] = route.state.access;
-      const value = request.headers.get("x-internal");
-      if (value === null) {
-        return toResponse(
-          new ForbiddenError(`Route '${route.method} ${route.path}' is missing 'x-internal' token.`),
-          request,
-        );
-      }
-      const decrypted = await decrypt<string>(value, privateKey);
-      if (decrypted !== "internal") {
-        return toResponse(
-          new ForbiddenError(`Route '${route.method} ${route.path}' has invalid 'x-internal' token.`),
-          request,
-        );
-      }
-      if (access === "internal:session" && context.isAuthenticated === false) {
-        return toResponse(new UnauthorizedError(), request);
-      }
     }
 
     // ### Params
@@ -242,10 +219,7 @@ export class Api {
     return toResponse(await route.state.handle(...args), request);
   }
 
-  #getErrorResponse(error: unknown, route: Route, request: Request): Response {
-    if (route?.state.hooks?.onError !== undefined) {
-      return route.state.hooks.onError(error);
-    }
+  #getErrorResponse(error: unknown, request: Request): Response {
     if (error instanceof ServerError) {
       return toResponse(error, request);
     }
@@ -377,13 +351,11 @@ export function toResponse(result: unknown, request: Request): Response {
   }
   if (result instanceof ServerError) {
     const body = JSON.stringify({
-      error: {
-        code: result.code,
-        status: result.status,
-        message: result.message,
-        data: result.data,
-      },
-    } satisfies ServerErrorResponse);
+      code: result.code as any,
+      status: result.status,
+      message: result.message,
+      data: result.data,
+    } satisfies ServerErrorJSON);
 
     return new Response(method === "HEAD" ? null : body, {
       statusText: result.message || "Internal Server Error",
@@ -394,9 +366,7 @@ export function toResponse(result: unknown, request: Request): Response {
     });
   }
 
-  const body = JSON.stringify({
-    data: result ?? null,
-  });
+  const body = result !== undefined ? JSON.stringify(result) : null;
 
   return new Response(method === "HEAD" ? null : body, {
     status: 200,

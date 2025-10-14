@@ -29,7 +29,7 @@ const ServerErrorResponseSchema = z.object({
  *
  * @param candidate - Candidate to check.
  */
-export function assertServerErrorResponse(candidate: unknown): candidate is ServerErrorResponse {
+export function assertServerErrorResponse(candidate: unknown): candidate is ServerErrorJSON {
   return ServerErrorResponseSchema.safeParse(candidate).success;
 }
 
@@ -74,18 +74,4 @@ export type RelayInput = {
   headers?: Headers;
 };
 
-export type RelayResponse<TData = unknown, TError = unknown> =
-  | {
-      result: "success";
-      headers: Headers;
-      data: TData;
-    }
-  | {
-      result: "error";
-      headers: Headers;
-      error: TError;
-    };
-
-export type ServerErrorResponse = {
-  error: ServerErrorJSON;
-};
+export type RelayResponse<TData = unknown, TError = unknown> = TData | TError;

@@ -4,9 +4,6 @@
   "workspace": [
     "./modules/auth",
     "./modules/principal",
-    "./modules/tenant",
-    "./modules/user",
-    "./modules/verification",
     "./platform/config",
     "./platform/database",
     "./platform/logger",
@@ -18,9 +15,6 @@
   "imports": {
     "@modules/auth": "./modules/auth/mod.ts",
     "@modules/principal": "./modules/principal/mod.ts",
-    "@modules/tenant": "./modules/tenant/mod.ts",
-    "@modules/user": "./modules/user/mod.ts",
-    "@modules/verification": "./modules/verification/mod.ts",
     "@platform/config": "./platform/config/mod.ts",
     "@platform/database": "./platform/database/mod.ts",
     "@platform/logger": "./platform/logger/mod.ts",
@@ -30,7 +24,7 @@
   },
   "tasks": {
     "start": {
-      "command": "deno run -A ./server/start.ts",
+      "command": "deno run -A --watch ./server/start.ts",
       "description": "Starts the IAM service enabling API access to its functionality."
     },
     "migrate": {

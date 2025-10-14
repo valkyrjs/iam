@@ -11,6 +11,6 @@
     "@platform/config": "workspace:*",
     "@std/fs": "npm:@jsr/std__fs@1.0.19",
     "postgres": "3.4.7",
-    "zod": "4.1.11"
+    "zod": "4.1.12"
   }
 }

@@ -1,5 +1,5 @@
+import { createUser } from "@modules/auth";
 import { createPrincipal, PrincipalType } from "@modules/principal";
-import { createUser } from "@modules/user";
 import { getEnvironmentVariable } from "@platform/config";
 import { type MigrateOperation, schema, type TransactionSql } from "@platform/database";
 import z from "zod";
@@ -38,25 +38,10 @@ async function createUserTable(tx: TransactionSql): Promise<void> {
       name            JSONB NOT NULL,
       email           TEXT NOT NULL,
       "emailVerified" BOOLEAN NOT NULL,
-      contacts        JSONB NOT NULL DEFAULT '[]',
-      meta            JSONB NOT NULL DEFAULT '{}',
+      image           TEXT,
       "createdAt"     TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
       "updatedAt"     TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL
     )
-  `;
-  await tx`
-    CREATE INDEX IF NOT EXISTS idx_user_contacts_gin
-    ON ${schema()}."user" USING GIN(contacts)
-  `;
-  await tx`
-    CREATE INDEX IF NOT EXISTS idx_user_contacts_email
-    ON ${schema()}."user" USING GIN(contacts jsonb_path_ops)
-    WHERE contacts @? '$[*] ? (@.type == "email")'
-  `;
-  await tx`
-    CREATE INDEX IF NOT EXISTS idx_user_contacts_phone
-    ON ${schema()}."user" USING GIN(contacts jsonb_path_ops)
-    WHERE contacts @? '$[*] ? (@.type == "phone")'
   `;
 }
 
@@ -90,7 +75,6 @@ async function createSessionTable(tx: TransactionSql): Promise<void> {
       id          TEXT NOT NULL PRIMARY KEY,
       "userId"    TEXT NOT NULL REFERENCES ${schema()}."user"(id) ON DELETE CASCADE,
       token       TEXT NOT NULL UNIQUE,
-      meta        JSONB NOT NULL DEFAULT '{}',
       "ipAddress" TEXT,
       "userAgent" TEXT,
       "createdAt" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,

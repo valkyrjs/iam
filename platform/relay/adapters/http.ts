@@ -1,11 +1,5 @@
-import {
-  assertServerErrorResponse,
-  type RelayAdapter,
-  type RelayInput,
-  type RelayResponse,
-  type ServerErrorResponse,
-} from "../adapter.ts";
-import { ServerError, type ServerErrorType } from "../errors.ts";
+import { assertServerErrorResponse, type RelayAdapter, type RelayInput, type RelayResponse } from "../adapter.ts";
+import { ServerError, type ServerErrorJSON, type ServerErrorType } from "../errors.ts";
 
 /**
  * HttpAdapter provides a unified transport layer for Relay.
@@ -179,14 +173,25 @@ export class HttpAdapter implements RelayAdapter {
 
     if (type === null) {
       return {
-        result: "error",
-        headers: response.headers,
-        error: {
+        code: "INTERNAL_SERVER",
+        status: response.status,
+        message: "Missing 'content-type' in header returned from server.",
+      };
+    }
+
+    // ### Error Response
+    // If the response comes with a non successfull HTTP status we parse the response
+    // as an error.
+
+    if (response.status >= 400) {
+      if (type.includes("json") === false) {
+        return {
           code: "INTERNAL_SERVER",
           status: response.status,
-          message: "Missing 'content-type' in header returned from server.",
-        },
-      };
+          message: "Unsupported 'json' body returned from server, missing 'data' or 'error' key.",
+        };
+      }
+      return this.#toError(await response.json());
     }
 
     // ### Empty Response
@@ -194,58 +199,27 @@ export class HttpAdapter implements RelayAdapter {
     // empty success.
 
     if (response.status === 204) {
-      return {
-        result: "success",
-        headers: response.headers,
-        data: null,
-      };
+      return null;
     }
 
     // ### JSON
     // If the 'content-type' contains 'json' we treat it as a 'json' compliant response
     // and attempt to resolve it as such.
 
-    if (type.includes("json") === true) {
-      const parsed = await response.json();
-      if ("data" in parsed) {
-        return {
-          result: "success",
-          headers: response.headers,
-          data: parsed.data,
-        };
-      }
-      if ("error" in parsed) {
-        return {
-          result: "error",
-          headers: response.headers,
-          error: this.#toError(parsed),
-        };
-      }
+    if (type.includes("json") === false) {
       return {
-        result: "error",
-        headers: response.headers,
-        error: {
-          code: "INTERNAL_SERVER",
-          status: response.status,
-          message: "Unsupported 'json' body returned from server, missing 'data' or 'error' key.",
-        },
-      };
-    }
-
-    return {
-      result: "error",
-      headers: response.headers,
-      error: {
         code: "INTERNAL_SERVER",
         status: response.status,
         message: "Unsupported 'content-type' in header returned from server.",
-      },
-    };
+      };
+    }
+
+    return response.json();
   }
 
-  #toError(candidate: unknown, status: number = 500): ServerErrorType | ServerErrorResponse["error"] {
+  #toError(candidate: unknown, status: number = 500): ServerErrorType | ServerErrorJSON {
     if (assertServerErrorResponse(candidate)) {
-      return ServerError.fromJSON(candidate.error);
+      return ServerError.fromJSON(candidate);
     }
     if (typeof candidate === "string") {
       return {

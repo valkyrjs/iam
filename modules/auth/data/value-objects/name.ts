@@ -104,4 +104,11 @@ export class UserName {
       .map((part) => part[0].toUpperCase())
       .join("");
   }
+
+  /**
+   * Return name object.
+   */
+  toJSON() {
+    return this.name;
+  }
 }

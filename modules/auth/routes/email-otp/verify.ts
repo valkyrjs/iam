@@ -1,11 +1,12 @@
-import { logger } from "@platform/logger";
-import { NotFoundError, route } from "@platform/relay";
+import { route } from "@platform/relay";
 import z from "zod";
 
+import { UserSchema } from "../../data/user.ts";
 import { auth } from "../../services/auth.ts";
 
 export default route
-  .post("/api/v1/auth/email-otp/verify")
+  .post("/api/v1/email-otp/verify")
+  .access("public")
   .query({
     next: z.string().optional(),
   })
@@ -15,13 +16,12 @@ export default route
       otp: z.string(),
     }),
   )
+  .response(
+    z.object({
+      token: z.string(),
+      user: UserSchema,
+    }),
+  )
   .handle(async ({ body: { email, otp } }) => {
-    const response = await auth.api.signInEmailOTP({ body: { email, otp }, asResponse: true, returnHeaders: true });
-    if (response.status !== 200) {
-      logger.error("OTP Signin Failed", await response.json());
-      return new NotFoundError();
-    }
-    return new Response(null, {
-      headers: response.headers,
-    });
+    return auth.api.signInEmailOTP({ body: { email, otp }, asResponse: true, returnHeaders: true });
   });
