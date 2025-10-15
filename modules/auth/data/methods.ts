@@ -1,4 +1,4 @@
-import { client, type Options, schema, takeInserted } from "@platform/database";
+import { client, type Options, takeInserted } from "@platform/database";
 
 import { type User, type UserInsert, UserInsertSchema, UserSchema } from "./user.ts";
 import {
@@ -15,13 +15,14 @@ import {
  * @param options - Database query options.
  */
 export async function createUser(user: UserInsert, { tx }: Options = {}): Promise<User> {
-  const { name, email } = UserInsertSchema.parse(user);
+  const { tenantId, name, email } = UserInsertSchema.parse(user);
   return (tx ?? client)`
-    INSERT INTO ${schema()}."user" 
-      (id, name, email, "emailVerified", "createdAt", "updatedAt") 
+    INSERT INTO "user" 
+      (id, "tenantId", name, email, "emailVerified", "createdAt", "updatedAt") 
     VALUES 
       (
         ${crypto.randomUUID()},
+        ${tenantId},
         ${JSON.stringify(name)},
         ${email},
         ${false},
@@ -44,7 +45,7 @@ export async function createVerification(
 ): Promise<Verification> {
   const { identifier, value } = VerificationInsertSchema.parse(verification);
   return (tx ?? client)`
-    INSERT INTO ${schema()}."verification" 
+    INSERT INTO "verification" 
       (identifier, value)
     VALUES 
       (

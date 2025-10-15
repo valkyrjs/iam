@@ -1,4 +1,4 @@
-import { client, makeRollback, schema } from "@platform/database";
+import { client, makeRollback } from "@platform/database";
 import { resolve } from "@std/path";
 
 const dirname = import.meta.dirname;
@@ -9,7 +9,6 @@ if (dirname === undefined) {
 await makeRollback(
   {
     sql: client,
-    schema,
   },
   0,
   resolve(dirname, "migrations"),

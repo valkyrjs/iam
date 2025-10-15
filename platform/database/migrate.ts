@@ -2,8 +2,6 @@ import { logger } from "@platform/logger";
 import { exists } from "@std/fs";
 import type { Sql, TransactionSql } from "postgres";
 
-import type { schema } from "./schema.ts";
-
 /**
  * Creates a migration runner function that applies pending migrations.
  *
@@ -48,15 +46,15 @@ import type { schema } from "./schema.ts";
  */
 export function makeMigration(options: MigrateOptions, migrationsPath: string): () => Promise<void> {
   return async () => {
-    const { sql, schema = () => sql("public"), table = "migration" } = options;
+    const { sql, table = "migration" } = options;
 
     // ### Migration Table
     // Ensure migrations table exists
 
     await sql.begin(async (tx) => {
-      await tx`CREATE SCHEMA IF NOT EXISTS ${schema()}`;
+      // await tx`CREATE SCHEMA IF NOT EXISTS ${schema()}`;
       await tx`
-        CREATE TABLE IF NOT EXISTS ${schema()}.${sql(table)} (
+        CREATE TABLE IF NOT EXISTS ${sql(table)} (
           idx        INT NOT NULL UNIQUE,                -- migration order
           name       TEXT NOT NULL UNIQUE,               -- migration filename
           created_at BIGINT NOT NULL,                    -- unix timestamp when migration was created
@@ -74,7 +72,7 @@ export function makeMigration(options: MigrateOptions, migrationsPath: string): 
     // ### Filter
     // Get already applied migrations
 
-    const appliedRows = await sql<{ idx: number }[]>`SELECT idx FROM ${schema()}.${sql(table)}`;
+    const appliedRows = await sql<{ idx: number }[]>`SELECT idx FROM ${sql(table)}`;
     const applied = new Set(appliedRows.map((r) => r.idx));
 
     // ### Sort
@@ -96,7 +94,7 @@ export function makeMigration(options: MigrateOptions, migrationsPath: string): 
       try {
         await sql.begin(async (tx) => {
           await migration.up(tx);
-          await tx`INSERT INTO ${schema()}.${sql(table)} (idx, name, created_at) VALUES (${migration.idx}, ${migration.name}, ${migration.timestamp})`;
+          await tx`INSERT INTO ${sql(table)} (idx, name, created_at) VALUES (${migration.idx}, ${migration.name}, ${migration.timestamp})`;
         });
         logger.info(`Migration '${migration.name}' applied`);
       } catch (error) {
@@ -127,7 +125,7 @@ export function makeMigration(options: MigrateOptions, migrationsPath: string): 
  */
 export function makeRollback(options: MigrateOptions, toIdx: number, migrationsPath: string): () => Promise<void> {
   return async () => {
-    const { sql, schema = () => sql("public"), table = "migration" } = options;
+    const { sql, table = "migration" } = options;
 
     // ### Migrations
     // Fetch migrations from the given migrations path.
@@ -137,7 +135,7 @@ export function makeRollback(options: MigrateOptions, toIdx: number, migrationsP
     // ### Filter
     // Get already applied migrations
 
-    const appliedRows = await sql<{ idx: number }[]>`SELECT idx FROM ${schema()}.${sql(table)} WHERE idx >= ${toIdx}`;
+    const appliedRows = await sql<{ idx: number }[]>`SELECT idx FROM ${sql(table)} WHERE idx >= ${toIdx}`;
     const appliedSet = new Set(appliedRows.map((r) => r.idx));
 
     // ### Sort
@@ -159,7 +157,7 @@ export function makeRollback(options: MigrateOptions, toIdx: number, migrationsP
       try {
         await sql.begin(async (tx) => {
           await migration.down(tx);
-          await tx`DELETE FROM ${schema()}.${sql(table)} WHERE idx = ${migration.idx}`;
+          await tx`DELETE FROM ${sql(table)} WHERE idx = ${migration.idx}`;
         });
         logger.info(`Migration rolled back: ${migration.name}`);
       } catch (err) {
@@ -210,12 +208,6 @@ type MigrateOptions = {
    * PostgresJS client instance used to execute migrations.
    */
   sql: Sql;
-
-  /**
-   * Schema the migrations table is located in.
-   * Default: "public"
-   */
-  schema?: () => ReturnType<typeof schema>;
 
   /**
    * Table used to record successfully applied migrations.

@@ -1,12 +1,13 @@
 {
-  "name": "server",
+  "name": "@modules/tenant",
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "main": "./mod.ts",
+  "exports": {
+    ".": "./mod.ts"
+  },
   "dependencies": {
-    "@modules/auth": "workspace:*",
-    "@modules/principal": "workspace:*",
-    "@modules/tenant": "workspace:*",
     "@platform/config": "workspace:*",
     "@platform/database": "workspace:*",
     "@std/path": "npm:@jsr/std__path@1.1.2",

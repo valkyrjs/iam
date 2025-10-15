@@ -1,4 +1,4 @@
-import { client, type Options, schema, takeInserted, takeOne } from "@platform/database";
+import { client, type Options, takeInserted, takeOne } from "@platform/database";
 
 import { type Principal, type PrincipalInsert, PrincipalInsertSchema, PrincipalSchema } from "./principal.ts";
 
@@ -11,7 +11,7 @@ import { type Principal, type PrincipalInsert, PrincipalInsertSchema, PrincipalS
 export async function createPrincipal(principal: PrincipalInsert, { tx }: Options = {}): Promise<Principal> {
   const { type, roles, attr, meta } = PrincipalInsertSchema.parse(principal);
   return (tx ?? client)`
-    INSERT INTO ${schema()}."principal"
+    INSERT INTO "principal"
       (id, type, roles, attr, meta)
     VALUES
       (
@@ -32,7 +32,5 @@ export async function createPrincipal(principal: PrincipalInsert, { tx }: Option
  * @param options - Database query options.
  */
 export async function getPrincipalByUserId(userId: string, { tx }: Options = {}): Promise<Principal | undefined> {
-  return (tx ?? client)`SELECT * FROM ${schema()}."principal" WHERE id = ${userId} LIMIT 1`.then(
-    takeOne(PrincipalInsertSchema),
-  );
+  return (tx ?? client)`SELECT * FROM "principal" WHERE id = ${userId} LIMIT 1`.then(takeOne(PrincipalInsertSchema));
 }

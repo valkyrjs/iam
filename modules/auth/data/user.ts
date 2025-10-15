@@ -9,12 +9,14 @@ import { NameSchema, UserName } from "./value-objects/name.ts";
  */
 
 export const UserInsertSchema = z.object({
+  tenantId: z.string(),
   name: NameSchema,
   email: z.string(),
 });
 
 export const UserSchema = UserInsertSchema.extend({
   id: z.string(),
+  tenantId: z.string(),
   name: z.string().transform((name) => new UserName(JSON.parse(name))),
   email: z.string(),
   emailVerified: z.boolean(),

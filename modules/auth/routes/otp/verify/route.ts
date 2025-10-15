@@ -1,11 +1,10 @@
 import { route } from "@platform/relay";
 import z from "zod";
 
-import { UserSchema } from "../../data/user.ts";
-import { auth } from "../../services/auth.ts";
+import { UserSchema } from "../../../data/user.ts";
 
 export default route
-  .post("/api/v1/email-otp/verify")
+  .post("/api/v1/otp/verify")
   .access("public")
   .query({
     next: z.string().optional(),
@@ -21,7 +20,4 @@ export default route
       token: z.string(),
       user: UserSchema,
     }),
-  )
-  .handle(async ({ body: { email, otp } }) => {
-    return auth.api.signInEmailOTP({ body: { email, otp }, asResponse: true, returnHeaders: true });
-  });
+  );

@@ -1,4 +1,4 @@
-import { client, makeMigration, schema } from "@platform/database";
+import { client, makeMigration } from "@platform/database";
 import { resolve } from "@std/path";
 
 const dirname = import.meta.dirname;
@@ -9,7 +9,6 @@ if (dirname === undefined) {
 await makeMigration(
   {
     sql: client,
-    schema,
   },
   resolve(dirname, "migrations"),
 )();

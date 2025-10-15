@@ -1,5 +1,5 @@
 import { sso } from "@better-auth/sso";
-import { connectionString, schemaString } from "@platform/database";
+import { connectionString } from "@platform/database";
 import { logger } from "@platform/logger";
 import { betterAuth } from "better-auth";
 import { emailOTP, organization } from "better-auth/plugins";
@@ -9,20 +9,26 @@ export const auth = betterAuth({
   database: new Pool({
     connectionString,
   }),
-  account: {
-    modelName: `${schemaString}.account`,
-  },
-  verification: {
-    modelName: `${schemaString}.verification`,
-  },
-  user: {
-    modelName: `${schemaString}.user`,
-  },
   session: {
-    modelName: `${schemaString}.session`,
+    additionalFields: {
+      tenantId: {
+        type: "string",
+        required: true,
+        input: false,
+      },
+    },
     cookieCache: {
       enabled: true,
       maxAge: 5 * 60, // Cache duration in seconds
+    },
+  },
+  user: {
+    additionalFields: {
+      tenantId: {
+        type: "string",
+        required: true,
+        input: false,
+      },
     },
   },
   plugins: [

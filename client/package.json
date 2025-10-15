@@ -1,5 +1,5 @@
 {
-  "name": "@platform/vault",
+  "name": "@valkyr/iam",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -8,6 +8,7 @@
     ".": "./mod.ts"
   },
   "dependencies": {
-    "jose": "6.1.0"
+    "@modules/auth": "workspace:*",
+    "zod": "4.1.12"
   }
 }

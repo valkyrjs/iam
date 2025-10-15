@@ -15,9 +15,9 @@ declare module "@platform/relay" {
 
 export default {
   routes: [
-    (await import("./routes/email-otp/create.ts")).default,
-    (await import("./routes/email-otp/verify.ts")).default,
-    (await import("./routes/session/get.ts")).default,
+    (await import("./routes/otp/send/handler.ts")).default,
+    (await import("./routes/otp/verify/handler.ts")).default,
+    (await import("./routes/session/get/handler.ts")).default,
   ],
   bootstrap: async () => {},
   resolve: async (request: Request) => {
