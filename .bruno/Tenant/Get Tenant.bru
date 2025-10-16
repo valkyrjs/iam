@@ -1,0 +1,20 @@
+meta {
+  name: Get Tenant
+  type: http
+  seq: 1
+}
+
+get {
+  url: http://localhost:8370/api/v1/tenant/:tenantId
+  body: none
+  auth: inherit
+}
+
+params:path {
+  tenantId: 
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -10,6 +10,8 @@
   "dependencies": {
     "@platform/config": "workspace:*",
     "@platform/database": "workspace:*",
+    "@platform/server": "workspace:*",
+    "@platform/utilities": "workspace:*",
     "@platform/value-object": "workspace:*",
     "@std/path": "npm:@jsr/std__path@1.1.2",
     "zod": "4.1.12"

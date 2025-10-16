@@ -1,4 +1,5 @@
 import auth from "@modules/auth";
+import tenant from "@modules/tenant";
 import { logger } from "@platform/logger";
 import { Api } from "@platform/server";
 
@@ -20,7 +21,7 @@ await auth.bootstrap();
  |--------------------------------------------------------------------------------
  */
 
-const api = new Api([...auth.routes]);
+const api = new Api([...(await auth.routes()), ...(await tenant.routes())]);
 
 /*
  |--------------------------------------------------------------------------------

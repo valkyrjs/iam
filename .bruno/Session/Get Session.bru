@@ -1,0 +1,15 @@
+meta {
+  name: Get Session
+  type: http
+  seq: 1
+}
+
+get {
+  url: http://localhost:8370/api/v1/session
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+}

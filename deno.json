@@ -10,6 +10,7 @@
     "./platform/logger",
     "./platform/relay",
     "./platform/server",
+    "./platform/utilities",
     "./platform/value-object",
     "./server"
   ],
@@ -21,6 +22,7 @@
     "@platform/logger": "./platform/logger/mod.ts",
     "@platform/relay": "./platform/relay/mod.ts",
     "@platform/server": "./platform/server/mod.ts",
+    "@platform/utilities": "./platform/utilities/mod.ts",
     "@platform/value-object": "./platform/value-object/mod.ts",
     "@valkyr/iam": "./client/mod.ts"
   },

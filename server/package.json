@@ -5,7 +5,6 @@
   "type": "module",
   "dependencies": {
     "@modules/auth": "workspace:*",
-    "@modules/principal": "workspace:*",
     "@modules/tenant": "workspace:*",
     "@platform/config": "workspace:*",
     "@platform/database": "workspace:*",

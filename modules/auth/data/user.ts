@@ -7,12 +7,13 @@ import { z } from "zod";
  */
 
 export const UserSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  email: z.string(),
-  emailVerified: z.boolean(),
-  createdAt: z.coerce.date(),
-  updatedAt: z.coerce.date(),
+  id: z.string().describe("Unique identifier for each user"),
+  name: z.string().describe("User's chosen display name"),
+  email: z.email().describe("User's email address for communication and login"),
+  emailVerified: z.boolean().describe("Whether the user's email is verified"),
+  image: z.url().nullable().optional().describe("User's image url"),
+  createdAt: z.coerce.date().describe("Timestamp of when the user account was created"),
+  updatedAt: z.coerce.date().describe("Timestamp of the last update to the user's information"),
 });
 
 export type User = z.infer<typeof UserSchema>;
@@ -24,7 +25,7 @@ export type User = z.infer<typeof UserSchema>;
  */
 
 export const UserInsertSchema = z.object({
-  email: z.string(),
+  email: UserSchema.shape.email,
 });
 
 export type UserInsert = z.input<typeof UserInsertSchema>;

@@ -1126,6 +1126,13 @@
           ]
         }
       },
+      "platform/utilities": {
+        "packageJson": {
+          "dependencies": [
+            "npm:zod@4.1.12"
+          ]
+        }
+      },
       "platform/value-object": {
         "packageJson": {
           "dependencies": [
