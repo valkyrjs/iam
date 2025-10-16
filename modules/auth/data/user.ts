@@ -1,34 +1,30 @@
 import { z } from "zod";
 
-import { NameSchema, UserName } from "./value-objects/name.ts";
-
 /*
  |--------------------------------------------------------------------------------
- | Schemas
+ | User Schema
  |--------------------------------------------------------------------------------
  */
 
-export const UserInsertSchema = z.object({
-  tenantId: z.string(),
-  name: NameSchema,
-  email: z.string(),
-});
-
-export const UserSchema = UserInsertSchema.extend({
+export const UserSchema = z.object({
   id: z.string(),
-  tenantId: z.string(),
-  name: z.string().transform((name) => new UserName(JSON.parse(name))),
+  name: z.string(),
   email: z.string(),
   emailVerified: z.boolean(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
 });
 
+export type User = z.infer<typeof UserSchema>;
+
 /*
  |--------------------------------------------------------------------------------
- | Types
+ | Database Schemas
  |--------------------------------------------------------------------------------
  */
 
+export const UserInsertSchema = z.object({
+  email: z.string(),
+});
+
 export type UserInsert = z.input<typeof UserInsertSchema>;
-export type User = z.infer<typeof UserSchema>;

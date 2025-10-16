@@ -1,5 +1,5 @@
 {
-  "name": "@modules/principal",
+  "name": "@platform/value-object",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -8,9 +8,6 @@
     ".": "./mod.ts"
   },
   "dependencies": {
-    "@platform/config": "workspace:*",
-    "@platform/database": "workspace:*",
-    "@std/path": "npm:@jsr/std__path@1.1.2",
     "zod": "4.1.12"
   }
 }

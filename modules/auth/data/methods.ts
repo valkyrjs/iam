@@ -15,15 +15,13 @@ import {
  * @param options - Database query options.
  */
 export async function createUser(user: UserInsert, { tx }: Options = {}): Promise<User> {
-  const { tenantId, name, email } = UserInsertSchema.parse(user);
+  const { email } = UserInsertSchema.parse(user);
   return (tx ?? client)`
     INSERT INTO "user" 
-      (id, "tenantId", name, email, "emailVerified", "createdAt", "updatedAt") 
+      (id, email, "emailVerified", "createdAt", "updatedAt") 
     VALUES 
       (
         ${crypto.randomUUID()},
-        ${tenantId},
-        ${JSON.stringify(name)},
         ${email},
         ${false},
         ${new Date()},

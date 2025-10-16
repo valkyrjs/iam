@@ -4,24 +4,24 @@
   "workspace": [
     "./client",
     "./modules/auth",
-    "./modules/principal",
     "./modules/tenant",
     "./platform/config",
     "./platform/database",
     "./platform/logger",
     "./platform/relay",
     "./platform/server",
+    "./platform/value-object",
     "./server"
   ],
   "imports": {
     "@modules/auth": "./modules/auth/mod.ts",
-    "@modules/principal": "./modules/principal/mod.ts",
     "@modules/tenant": "./modules/tenant/mod.ts",
     "@platform/config": "./platform/config/mod.ts",
     "@platform/database": "./platform/database/mod.ts",
     "@platform/logger": "./platform/logger/mod.ts",
     "@platform/relay": "./platform/relay/mod.ts",
     "@platform/server": "./platform/server/mod.ts",
+    "@platform/value-object": "./platform/value-object/mod.ts",
     "@valkyr/iam": "./client/mod.ts"
   },
   "tasks": {

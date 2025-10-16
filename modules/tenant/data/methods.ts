@@ -1,13 +1,34 @@
 import { TenantSchema } from "@modules/tenant";
-import { client, type Options, takeInserted } from "@platform/database";
+import { client, type Options, takeInserted, takeOne } from "@platform/database";
 
 import { type Tenant, type TenantInsert, TenantInsertSchema } from "./tenant.ts";
+import {
+  type TenantPrincipal,
+  type TenantPrincipalInsert,
+  TenantPrincipalInsertSchema,
+  TenantPrincipalSchema,
+} from "./tenant-principal.ts";
 
 /**
  * Add tenant to the database.
  *
  * @param tenant  - Tenant to add.
  * @param options - Database query options.
+ *
+ * @throws new DatabaseInsertError("tenant") if no response from database RETURNING
+ *
+ * @example
+ * ```ts
+ * import { createTenant } from "@module/tenant";
+ *
+ * const tenant = await createTenant({
+ *   name: "Valkyr",
+ *   slug: "valkyr",
+ *   meta: {
+ *     foo: "bar" // free form meta data to attach to the tenant
+ *   }
+ * });
+ * ```
  */
 export async function createTenant(principal: TenantInsert, { tx }: Options = {}): Promise<Tenant> {
   const { name, slug, meta } = TenantInsertSchema.parse(principal);
@@ -23,4 +44,73 @@ export async function createTenant(principal: TenantInsert, { tx }: Options = {}
       )
     RETURNING *
   `.then(takeInserted("tenant", TenantSchema));
+}
+
+/**
+ * Get tenant the provided user belongs to.
+ *
+ * @param userId  - User to retrieve tenant for.
+ * @param options - Database query options.
+ *
+ * @example
+ * ```ts
+ * import { getTenantUserById } from "@module/tenant";
+ *
+ * const tenant = await getTenantByUserId("user-id");
+ * if (tenant === undefined) {
+ *   throw new NotFoundError("Tenant not found");
+ * }
+ * ```
+ */
+export async function getTenantByUserId(userId: string, { tx }: Options = {}) {
+  return (tx ?? client)`
+    SELECT t.*
+    FROM "tenant" AS t
+    INNER JOIN "tenant_principal" AS tp
+    ON t.id = tp."tenantId"
+    WHERE tp."userId" = ${userId}
+    LIMIT 1
+  `.then(takeOne(TenantSchema));
+}
+
+/**
+ * Add tenant principal to the database.
+ *
+ * @param principal - Principal to add.
+ * @param options   - Database query options.
+ */
+export async function createTenantPrincipal(
+  principal: TenantPrincipalInsert,
+  { tx }: Options = {},
+): Promise<TenantPrincipal> {
+  const { tenantId, userId, name, roles, attr } = TenantPrincipalInsertSchema.parse(principal);
+  return (tx ?? client)`
+    INSERT INTO "tenant_principal"
+      (id, "tenantId", "userId", name, roles, attr)
+    VALUES
+      (
+        ${crypto.randomUUID()},
+        ${tenantId},
+        ${userId},
+        ${JSON.stringify(name)},
+        ${JSON.stringify(roles)},
+        ${JSON.stringify(attr)}
+      )
+    RETURNING *
+  `.then(takeInserted("tenant_principal", TenantPrincipalSchema));
+}
+
+/**
+ * Retrieve a tenant principal by given better-auth user id.
+ *
+ * @param userId  - User id from better-auth user.
+ * @param options - Database query options.
+ */
+export async function getTenantPrincipalByUserId(
+  userId: string,
+  { tx }: Options = {},
+): Promise<TenantPrincipal | undefined> {
+  return (tx ?? client)`SELECT * FROM "tenant_principal" WHERE "userId" = ${userId} LIMIT 1`.then(
+    takeOne(TenantPrincipalSchema),
+  );
 }

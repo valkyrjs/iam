@@ -22,7 +22,11 @@ export type Name = z.infer<typeof NameSchema>;
  */
 
 export class UserName {
-  constructor(readonly name: Name) {}
+  private constructor(readonly name: Name) {}
+
+  static create(name: unknown): UserName {
+    return new UserName(NameSchema.parse(name));
+  }
 
   /**
    * Get the full name in "Given Family" format.
@@ -103,6 +107,10 @@ export class UserName {
       .filter((value) => value !== undefined)
       .map((part) => part[0].toUpperCase())
       .join("");
+  }
+
+  toString() {
+    return this.full;
   }
 
   /**

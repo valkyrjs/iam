@@ -2,14 +2,9 @@ import z from "zod";
 
 /*
  |--------------------------------------------------------------------------------
- | Schema
+ | Verification Schema
  |--------------------------------------------------------------------------------
  */
-
-export const VerificationInsertSchema = z.object({
-  identifier: z.string(),
-  value: z.string(),
-});
 
 export const VerificationSchema = z.object({
   id: z.string(),
@@ -20,11 +15,17 @@ export const VerificationSchema = z.object({
   expiresAt: z.coerce.date(),
 });
 
+export type Verification = z.infer<typeof VerificationSchema>;
+
 /*
  |--------------------------------------------------------------------------------
- | Types
+ | Database Schemas
  |--------------------------------------------------------------------------------
  */
 
+export const VerificationInsertSchema = z.object({
+  identifier: z.string(),
+  value: z.string(),
+});
+
 export type VerificationInsert = z.input<typeof VerificationInsertSchema>;
-export type Verification = z.infer<typeof VerificationSchema>;

@@ -1,13 +1,8 @@
 import { z } from "zod";
 
-/*
- |--------------------------------------------------------------------------------
- | Schemas
- |--------------------------------------------------------------------------------
- */
-
 export const SessionSchema = z.strictObject({
   id: z.string(),
+  tenantId: z.string(),
   userId: z.string(),
   token: z.string(),
   ipAddress: z.string().optional(),
@@ -16,11 +11,5 @@ export const SessionSchema = z.strictObject({
   updatedAt: z.coerce.date(),
   expiresAt: z.coerce.date(),
 });
-
-/*
- |--------------------------------------------------------------------------------
- | Types
- |--------------------------------------------------------------------------------
- */
 
 export type Session = z.infer<typeof SessionSchema>;

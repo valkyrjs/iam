@@ -1,3 +1,4 @@
+import type { TenantPrincipal } from "@modules/tenant";
 import { context } from "@platform/relay";
 
 import { type Session, SessionSchema } from "./data/session.ts";
@@ -10,6 +11,7 @@ declare module "@platform/relay" {
   interface RequestContext {
     session: Session;
     user: User;
+    principal: TenantPrincipal;
   }
 }
 
@@ -27,5 +29,6 @@ export default {
     }
     context.session = SessionSchema.parse(response.session);
     context.user = UserSchema.parse(response.user);
+    context.principal = response.principal;
   },
 };

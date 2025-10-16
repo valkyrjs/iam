@@ -1,28 +1,19 @@
 import { sso } from "@better-auth/sso";
-import { connectionString } from "@platform/database";
+import { getTenantPrincipalByUserId } from "@modules/tenant";
 import { logger } from "@platform/logger";
+import { UnauthorizedError } from "@platform/relay";
 import { betterAuth } from "better-auth";
-import { emailOTP, organization } from "better-auth/plugins";
-import { Pool } from "pg";
+import { customSession, emailOTP } from "better-auth/plugins";
+
+import database from "./auth/database.ts";
 
 export const auth = betterAuth({
-  database: new Pool({
-    connectionString,
-  }),
+  ...database,
   session: {
-    additionalFields: {
-      tenantId: {
-        type: "string",
-        required: true,
-        input: false,
-      },
-    },
     cookieCache: {
       enabled: true,
       maxAge: 5 * 60, // Cache duration in seconds
     },
-  },
-  user: {
     additionalFields: {
       tenantId: {
         type: "string",
@@ -32,7 +23,6 @@ export const auth = betterAuth({
     },
   },
   plugins: [
-    organization(),
     sso(),
     emailOTP({
       async sendVerificationOTP({ email, otp, type }) {
@@ -44,6 +34,17 @@ export const auth = betterAuth({
           // Send the OTP for password reset
         }
       },
+    }),
+    customSession(async ({ user, session }) => {
+      const principal = await getTenantPrincipalByUserId(session.userId);
+      if (principal === undefined) {
+        throw new UnauthorizedError("Missing 'principal' on user session.");
+      }
+      return {
+        session,
+        user,
+        principal,
+      };
     }),
   ],
 });

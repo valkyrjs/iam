@@ -1,6 +1,5 @@
 import { createUser } from "@modules/auth";
-import { createPrincipal, PrincipalType } from "@modules/principal";
-import { createTenant } from "@modules/tenant";
+import { createTenant, createTenantPrincipal } from "@modules/tenant";
 import { getEnvironmentVariable } from "@platform/config";
 import type { MigrateOperation, TransactionSql } from "@platform/database";
 import z from "zod";
@@ -9,22 +8,24 @@ export default {
   idx: 0,
   timestamp: 1759160813,
   async up(tx) {
-    await createTenantTable(tx);
     await createUserTable(tx);
+
+    await createTenantTable(tx);
+    await createTenantPrincipalTable(tx);
+
     await createAccountTable(tx);
-    await createSessionTable(tx);
     await createVerificationTable(tx);
-    await createPrincipalTable(tx);
+    await createSessionTable(tx);
+
     await createSuperPrincipal(tx);
   },
   async down(tx) {
-    await tx`DROP TABLE IF EXISTS "tenant" CASCADE`;
     await tx`DROP TABLE IF EXISTS "user" CASCADE`;
-    await tx`DROP TABLE IF EXISTS "strategy" CASCADE`;
+    await tx`DROP TABLE IF EXISTS "tenant" CASCADE`;
+    await tx`DROP TABLE IF EXISTS "tenant_principal" CASCADE`;
     await tx`DROP TABLE IF EXISTS "account" CASCADE`;
-    await tx`DROP TABLE IF EXISTS "session" CASCADE`;
     await tx`DROP TABLE IF EXISTS "verification" CASCADE`;
-    await tx`DROP TABLE IF EXISTS "principal" CASCADE`;
+    await tx`DROP TABLE IF EXISTS "session" CASCADE`;
   },
 } satisfies MigrateOperation;
 
@@ -34,6 +35,21 @@ export default {
  |--------------------------------------------------------------------------------
  */
 
+async function createUserTable(tx: TransactionSql): Promise<void> {
+  await tx`
+    CREATE TABLE IF NOT EXISTS "user" (
+      id              TEXT NOT NULL PRIMARY KEY,
+      name            TEXT NOT NULL DEFAULT '',
+      email           TEXT NOT NULL,
+      "emailVerified" BOOLEAN NOT NULL,
+      image           TEXT,
+      "createdAt"     TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
+      "updatedAt"     TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
+      UNIQUE (email)
+    )
+  `;
+}
+
 async function createTenantTable(tx: TransactionSql): Promise<void> {
   await tx`
     CREATE TABLE IF NOT EXISTS "tenant" (
@@ -41,26 +57,30 @@ async function createTenantTable(tx: TransactionSql): Promise<void> {
       name        TEXT NOT NULL,
       slug        TEXT NOT NULL,
       meta        JSONB NOT NULL DEFAULT '{}',
-      "createdAt" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL
+      "createdAt" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
+      UNIQUE (slug)
     )
   `;
 }
 
-async function createUserTable(tx: TransactionSql): Promise<void> {
+async function createTenantPrincipalTable(tx: TransactionSql): Promise<void> {
   await tx`
-    CREATE TABLE IF NOT EXISTS "user" (
-      id              TEXT NOT NULL PRIMARY KEY,
-      "tenantId"      TEXT NOT NULL REFERENCES "tenant"(id) ON DELETE CASCADE,
-      name            JSONB NOT NULL,
-      email           TEXT NOT NULL,
-      "emailVerified" BOOLEAN NOT NULL,
-      image           TEXT,
-      "createdAt"     TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
-      "updatedAt"     TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL
+    CREATE TABLE IF NOT EXISTS "tenant_principal" (
+      id          TEXT PRIMARY KEY,
+      "tenantId"  TEXT NOT NULL REFERENCES "tenant"(id) ON DELETE CASCADE,
+      "userId"    TEXT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+      name        JSONB NOT NULL,
+      roles       JSONB NOT NULL DEFAULT '[]',
+      attr        JSONB NOT NULL DEFAULT '{}',
+      "createdAt" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
+      UNIQUE ("tenantId", "userId")
     )
   `;
   await tx`
-    CREATE INDEX IF NOT EXISTS idx_user_tenantId ON "user"("tenantId")
+    CREATE INDEX IF NOT EXISTS idx_tenant_principal_tenantId ON "tenant_principal" ("tenantId")
+  `;
+  await tx`
+    CREATE INDEX IF NOT EXISTS idx_tenant_principal_roles ON "tenant_principal" USING GIN (roles)
   `;
 }
 
@@ -79,7 +99,8 @@ async function createAccountTable(tx: TransactionSql): Promise<void> {
       "accessTokenExpiresAt"  TIMESTAMPTZ,
       "refreshTokenExpiresAt" TIMESTAMPTZ,
       "createdAt"             TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
-      "updatedAt"             TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL
+      "updatedAt"             TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
+      UNIQUE ("providerId", "accountId")
     )
   `;
   await tx`
@@ -102,13 +123,16 @@ async function createSessionTable(tx: TransactionSql): Promise<void> {
     )
   `;
   await tx`
-    CREATE INDEX IF NOT EXISTS idx_session_tenantId ON "session"("tenantId")
+    CREATE INDEX IF NOT EXISTS idx_session_user_tenant ON "session" ("userId", "tenantId");
   `;
   await tx`
-    CREATE INDEX IF NOT EXISTS idx_session_userId ON "session"("userId")
+    CREATE INDEX IF NOT EXISTS idx_session_tenantId ON "session" ("tenantId")
   `;
   await tx`
-    CREATE INDEX IF NOT EXISTS idx_session_token ON "session"("token")
+    CREATE INDEX IF NOT EXISTS idx_session_userId ON "session" ("userId")
+  `;
+  await tx`
+    CREATE INDEX IF NOT EXISTS idx_session_token ON "session" ("token")
   `;
 }
 
@@ -123,23 +147,8 @@ async function createVerificationTable(tx: TransactionSql): Promise<void> {
       "updatedAt" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL
     )
   `;
-}
-
-async function createPrincipalTable(tx: TransactionSql): Promise<void> {
   await tx`
-    CREATE TABLE IF NOT EXISTS "principal" (
-      id    TEXT PRIMARY KEY,
-      type  INTEGER NOT NULL,
-      roles JSONB NOT NULL DEFAULT '[]',
-      attr  JSONB NOT NULL DEFAULT '{}',
-      meta  JSONB NOT NULL DEFAULT '{}'
-    )
-  `;
-  await tx`
-    CREATE INDEX IF NOT EXISTS idx_principal_type ON "principal" (type)
-  `;
-  await tx`
-    CREATE INDEX IF NOT EXISTS idx_principal_roles ON "principal" USING GIN (roles)
+    CREATE INDEX IF NOT EXISTS idx_verification_identifier_value ON "verification" (identifier, value);
   `;
 }
 
@@ -150,20 +159,8 @@ async function createPrincipalTable(tx: TransactionSql): Promise<void> {
  */
 
 async function createSuperPrincipal(tx: TransactionSql): Promise<void> {
-  const tenant = await createTenant(
-    {
-      name: "Super",
-      slug: "super",
-    },
-    { tx },
-  );
   const user = await createUser(
     {
-      tenantId: tenant.id,
-      name: {
-        given: "John",
-        family: "Doe",
-      },
       email: getEnvironmentVariable({
         key: "IAM_SUPER_EMAIL",
         type: z.email(),
@@ -172,13 +169,24 @@ async function createSuperPrincipal(tx: TransactionSql): Promise<void> {
     },
     { tx },
   );
-  await createPrincipal(
+  await createTenantPrincipal(
     {
-      id: user.id,
-      type: PrincipalType.User,
+      tenantId: (
+        await createTenant(
+          {
+            name: "Super",
+            slug: "super",
+          },
+          { tx },
+        )
+      ).id,
+      userId: user.id,
+      name: {
+        given: "John",
+        family: "Doe",
+      },
       roles: ["super"],
       attr: {},
-      meta: {},
     },
     { tx },
   );
