@@ -1,0 +1,7 @@
+{
+  "name": "@modules/tenant",
+  "version": "0.0.0",
+  "exports": {
+    ".": "./server.ts"
+  }
+}

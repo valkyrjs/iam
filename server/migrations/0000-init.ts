@@ -70,17 +70,20 @@ async function createTenantPrincipalTable(tx: TransactionSql): Promise<void> {
       "tenantId"  TEXT NOT NULL REFERENCES "tenant"(id) ON DELETE CASCADE,
       "userId"    TEXT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
       name        JSONB NOT NULL,
-      roles       JSONB NOT NULL DEFAULT '[]',
+      roles       TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],
       attr        JSONB NOT NULL DEFAULT '{}',
       "createdAt" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
       UNIQUE ("tenantId", "userId")
     )
   `;
   await tx`
-    CREATE INDEX IF NOT EXISTS idx_tenant_principal_tenantId ON "tenant_principal" ("tenantId")
+    CREATE INDEX IF NOT EXISTS idx_tenant_principal_tenantId ON "tenant_principal" ("tenantId");
   `;
   await tx`
-    CREATE INDEX IF NOT EXISTS idx_tenant_principal_roles ON "tenant_principal" USING GIN (roles)
+    CREATE INDEX IF NOT EXISTS idx_tenant_principal_roles ON "tenant_principal" USING GIN (roles);
+  `;
+  await tx`
+    CREATE INDEX IF NOT EXISTS idx_tenant_principal_attr ON "tenant_principal" USING GIN (attr);
   `;
 }
 

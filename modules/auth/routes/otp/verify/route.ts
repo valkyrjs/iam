@@ -1,7 +1,7 @@
 import { route } from "@platform/relay";
 import z from "zod";
 
-import { UserSchema } from "../../../data/user.ts";
+import { UserSchema } from "../../../schemas/user.ts";
 
 export default route
   .post("/api/v1/otp/verify")

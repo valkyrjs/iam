@@ -1,19 +1,5 @@
+import { ZodValueObject } from "@platform/utilities";
 import z from "zod";
-
-/*
- |--------------------------------------------------------------------------------
- | Schema
- |--------------------------------------------------------------------------------
- */
-
-export const NameSchema = z.object({
-  given: z.string().min(1).describe("Given name, also known as first name."),
-  family: z.string().min(1).describe("Family name, also known as last name or surname."),
-  middle: z.string().optional().describe("Middle name or initial."),
-  preferred: z.string().optional().describe("Preferred name or nickname for display purposes."),
-});
-
-export type Name = z.infer<typeof NameSchema>;
 
 /*
  |--------------------------------------------------------------------------------
@@ -22,11 +8,7 @@ export type Name = z.infer<typeof NameSchema>;
  */
 
 export class UserName {
-  private constructor(readonly name: Name) {}
-
-  static create(name: unknown): UserName {
-    return new UserName(NameSchema.parse(name));
-  }
+  constructor(readonly name: Name) {}
 
   /**
    * Get the full name in "Given Family" format.
@@ -120,3 +102,21 @@ export class UserName {
     return this.name;
   }
 }
+
+/*
+ |--------------------------------------------------------------------------------
+ | Schema
+ |--------------------------------------------------------------------------------
+ */
+
+export const NameSchema = ZodValueObject(
+  UserName,
+  z.object({
+    given: z.string().min(1).describe("Given name, also known as first name."),
+    family: z.string().min(1).describe("Family name, also known as last name or surname."),
+    middle: z.string().optional().describe("Middle name or initial."),
+    preferred: z.string().optional().describe("Preferred name or nickname for display purposes."),
+  }),
+);
+
+export type Name = z.input<(typeof NameSchema)["write"]>;

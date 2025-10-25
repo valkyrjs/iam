@@ -1,6 +1,5 @@
 {
   "nodeModulesDir": "auto",
-  "version": "0.0.0",
   "workspace": [
     "./client",
     "./modules/auth",
@@ -9,22 +8,24 @@
     "./platform/database",
     "./platform/logger",
     "./platform/relay",
+    "./platform/request",
     "./platform/server",
     "./platform/utilities",
     "./platform/value-object",
     "./server"
   ],
   "imports": {
-    "@modules/auth": "./modules/auth/mod.ts",
-    "@modules/tenant": "./modules/tenant/mod.ts",
-    "@platform/config": "./platform/config/mod.ts",
-    "@platform/database": "./platform/database/mod.ts",
-    "@platform/logger": "./platform/logger/mod.ts",
-    "@platform/relay": "./platform/relay/mod.ts",
-    "@platform/server": "./platform/server/mod.ts",
-    "@platform/utilities": "./platform/utilities/mod.ts",
-    "@platform/value-object": "./platform/value-object/mod.ts",
-    "@valkyr/iam": "./client/mod.ts"
+    "@std/dotenv": "jsr:@std/dotenv@0.225.5",
+    "@std/fs": "jsr:@std/fs@1.0.19",
+    "@std/path": "jsr:@std/path@1.1.2",
+    "@types/node": "npm:@types/node@24.2.0",
+    "@valkyr/event-store": "jsr:@valkyr/event-store@2.0.2",
+    "@valkyr/json-rpc": "jsr:@valkyr/json-rpc@^1.1.0",
+    "zod": "jsr:@zod/zod@4.1.12"
+  },
+  "exclude": [".bruno", ".github", ".vscode"],
+  "publish": {
+    "exclude": [".bruno", ".github", ".vscode", ".gitignore"]
   },
   "tasks": {
     "start": {
@@ -39,9 +40,13 @@
       "command": "deno run -A ./server/rollback.ts",
       "description": "Runs data rollback on the configured database."
     },
-    "check": {
+    "biome": {
       "command": "deno run -A npm:@biomejs/biome check --write .",
       "description": "Format, lint, and organize imports of the entire repository."
+    },
+    "check": {
+      "command": "deno check .",
+      "description": "Runs deno check across the entire repository."
     },
     "test": {
       "command": "deno test --allow-all",

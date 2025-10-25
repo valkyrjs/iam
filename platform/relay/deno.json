@@ -1,0 +1,11 @@
+{
+  "name": "@platform/relay",
+  "version": "0.0.0",
+  "exports": {
+    ".": "./mod.ts"
+  },
+  "imports": {
+    "path-to-regexp": "npm:path-to-regexp@8.3.0",
+    "zod-openapi": "npm:zod-openapi@5.4.3"
+  }
+}

@@ -1,5 +1,10 @@
-import { assertServerErrorResponse, type RelayAdapter, type RelayInput, type RelayResponse } from "../adapter.ts";
-import { ServerError, type ServerErrorJSON, type ServerErrorType } from "../errors.ts";
+import {
+  assertServerErrorResponse,
+  type RelayAdapter,
+  type RelayInput,
+  type RelayResponse,
+} from "../libraries/adapter.ts";
+import { ServerError, type ServerErrorJSON, type ServerErrorType } from "../libraries/errors.ts";
 
 /**
  * HttpAdapter provides a unified transport layer for Relay.

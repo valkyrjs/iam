@@ -1,0 +1,10 @@
+{
+  "name": "@platform/database",
+  "version": "0.0.0",
+  "exports": {
+    ".": "./mod.ts"
+  },
+  "imports": {
+    "postgres": "npm:postgres@3.4.7"
+  }
+}

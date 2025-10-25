@@ -1,19 +1,75 @@
 {
   "version": "5",
   "specifiers": {
+    "jsr:@std/dotenv@0.225.5": "0.225.5",
+    "jsr:@std/fs@1.0.19": "1.0.19",
+    "jsr:@std/internal@^1.0.10": "1.0.10",
+    "jsr:@std/internal@^1.0.9": "1.0.10",
+    "jsr:@std/path@1.1.2": "1.1.2",
+    "jsr:@std/path@^1.1.1": "1.1.2",
+    "jsr:@valkyr/event-emitter@^1.0.1": "1.0.1",
+    "jsr:@valkyr/event-store@2.0.2": "2.0.2",
+    "jsr:@valkyr/json-rpc@^1.1.0": "1.1.0",
+    "jsr:@zod/zod@4.1.12": "4.1.12",
     "npm:@better-auth/sso@1.3.27": "1.3.27_better-auth@1.3.27",
     "npm:@biomejs/biome@*": "2.2.5",
-    "npm:@biomejs/biome@2.2.5": "2.2.5",
-    "npm:@jsr/std__dotenv@0.225.5": "0.225.5",
-    "npm:@jsr/std__fs@1.0.19": "1.0.19",
-    "npm:@jsr/std__path@1.1.2": "1.1.2",
-    "npm:@jsr/valkyr__event-store@2.0.2": "2.0.2",
+    "npm:@jsr/valkyr__db@2": "2.0.0",
+    "npm:@types/node@24.2.0": "24.2.0",
     "npm:better-auth@1.3.27": "1.3.27",
+    "npm:eventemitter3@5.0.1": "5.0.1",
+    "npm:mongodb@6": "6.20.0",
     "npm:path-to-regexp@8.3.0": "8.3.0",
     "npm:pg@8.16.3": "8.16.3",
+    "npm:postgres@3": "3.4.7",
     "npm:postgres@3.4.7": "3.4.7",
     "npm:zod-openapi@5.4.3": "5.4.3_zod@4.1.12",
+    "npm:zod@4": "4.1.12",
     "npm:zod@4.1.12": "4.1.12"
+  },
+  "jsr": {
+    "@std/dotenv@0.225.5": {
+      "integrity": "9ce6f9d0ec3311f74a32535aa1b8c62ed88b1ab91b7f0815797d77a6f60c922f"
+    },
+    "@std/fs@1.0.19": {
+      "integrity": "051968c2b1eae4d2ea9f79a08a3845740ef6af10356aff43d3e2ef11ed09fb06",
+      "dependencies": [
+        "jsr:@std/internal@^1.0.9",
+        "jsr:@std/path@^1.1.1"
+      ]
+    },
+    "@std/internal@1.0.10": {
+      "integrity": "e3be62ce42cab0e177c27698e5d9800122f67b766a0bea6ca4867886cbde8cf7"
+    },
+    "@std/path@1.1.2": {
+      "integrity": "c0b13b97dfe06546d5e16bf3966b1cadf92e1cc83e56ba5476ad8b498d9e3038",
+      "dependencies": [
+        "jsr:@std/internal@^1.0.10"
+      ]
+    },
+    "@valkyr/event-emitter@1.0.1": {
+      "integrity": "7e41dd2254fd00e17d482254d43e89c16261ea5ad5279112097a4c21e9424627",
+      "dependencies": [
+        "npm:eventemitter3"
+      ]
+    },
+    "@valkyr/event-store@2.0.2": {
+      "integrity": "2bae2a57cc0fe58dd7153f1607a772e60b2ee32c518ca5f6f4d8a58b609e6c52",
+      "dependencies": [
+        "npm:@jsr/valkyr__db",
+        "npm:mongodb",
+        "npm:postgres@3",
+        "npm:zod@4"
+      ]
+    },
+    "@valkyr/json-rpc@1.1.0": {
+      "integrity": "197a85c1cd380ec7b6a3da07d94664838d388811b3b1d2ed19ed2e4b09293059",
+      "dependencies": [
+        "jsr:@valkyr/event-emitter"
+      ]
+    },
+    "@zod/zod@4.1.12": {
+      "integrity": "5876ed4c6d44673faf5120f0a461a2ada2eb6c735329d3ebaf5ba1fc08387695"
+    }
   },
   "npm": {
     "@authenio/xml-encryption@2.0.2": {
@@ -106,37 +162,6 @@
     "@hexagon/base64@1.1.28": {
       "integrity": "sha512-lhqDEAvWixy3bZ+UOYbPwUbBkwBq5C1LAJ/xPC8Oi+lL54oyakv/npbA0aU2hgCsx/1NUd4IBvV03+aUBWxerw=="
     },
-    "@jsr/std__async@1.0.15": {
-      "integrity": "sha512-GW6tMWwF79kKKVths4SWcju1cFykhcE+jiV6/k2IOW45611ji+Yomm0MZuW7JR4Oug+GXF0POrsAiSqL8k/9PQ==",
-      "tarball": "https://npm.jsr.io/~/11/@jsr/std__async/1.0.15.tgz"
-    },
-    "@jsr/std__dotenv@0.225.5": {
-      "integrity": "sha512-qrBt3wfQgvXbjo+Up6lyzBGxk0IPhDqW9Jx7CJQUQpsxqhoqnBmD8gn0Mt8i+RHHI9uZFCO+FP122ClAC8yljg==",
-      "tarball": "https://npm.jsr.io/~/11/@jsr/std__dotenv/0.225.5.tgz"
-    },
-    "@jsr/std__fs@1.0.19": {
-      "integrity": "sha512-TEjyE8g+46jPlu7dJHLrwc8NMGl8zfG+JjWxyNQyDbxP0RtqZ4JmYZfR9vy4RWYWJQbLpw6Kbt2n+K/2zAO/JA==",
-      "dependencies": [
-        "@jsr/std__internal",
-        "@jsr/std__path"
-      ],
-      "tarball": "https://npm.jsr.io/~/11/@jsr/std__fs/1.0.19.tgz"
-    },
-    "@jsr/std__internal@1.0.12": {
-      "integrity": "sha512-6xReMW9p+paJgqoFRpOE2nogJFvzPfaLHLIlyADYjKMUcwDyjKZxryIbgcU+gxiTygn8yCjld1HoI0ET4/iZeA==",
-      "tarball": "https://npm.jsr.io/~/11/@jsr/std__internal/1.0.12.tgz"
-    },
-    "@jsr/std__net@1.0.6": {
-      "integrity": "sha512-mh27Fw4UMCjGSIMoOhjia5cS5fNP9M9DZYhGB7EYSZNnzf/eguFiarii/W4oDwYMmnxCMouUzhc6Y7jFuwTzcg==",
-      "tarball": "https://npm.jsr.io/~/11/@jsr/std__net/1.0.6.tgz"
-    },
-    "@jsr/std__path@1.1.2": {
-      "integrity": "sha512-5hkOR1s5M7am02Bn9KS+SNMNwUSivz7t7/w2HBhFIfO7Eh8+mWilaZ+1tdanV9aaSHr4c99Zo4Da+cCSuzUOdA==",
-      "dependencies": [
-        "@jsr/std__internal"
-      ],
-      "tarball": "https://npm.jsr.io/~/11/@jsr/std__path/1.1.2.tgz"
-    },
     "@jsr/valkyr__db@2.0.0": {
       "integrity": "sha512-0gIauba+vQW6ssqMACLO1Z/METlhzoX+y4t9Sawh/IafQ986Rgvp6gCI+WArp7vbsO5hpItixrqjkxnnNC+h5g==",
       "dependencies": [
@@ -147,33 +172,11 @@
       ],
       "tarball": "https://npm.jsr.io/~/11/@jsr/valkyr__db/2.0.0.tgz"
     },
-    "@jsr/valkyr__event-store@2.0.2": {
-      "integrity": "sha512-GjhprACDhek1jMigTQDdpBbNypIwkQIrIXnpK9d85Rn/Hi3kaZ3lEVzo9JjoN8zmaDiJhDA53kAcKd18olOtcg==",
-      "dependencies": [
-        "@jsr/valkyr__db",
-        "@jsr/valkyr__testcontainers",
-        "mongodb",
-        "postgres",
-        "zod"
-      ],
-      "tarball": "https://npm.jsr.io/~/11/@jsr/valkyr__event-store/2.0.2.tgz"
-    },
-    "@jsr/valkyr__testcontainers@2.0.2": {
-      "integrity": "sha512-YnmfraYFr3msoUGrIFeElm03nbQqXOaPu0QUT6JI3w6/mIYpVfzPxghkB7gn2RIc81QgrqjwKJE/AL3dltlR1w==",
-      "dependencies": [
-        "@jsr/std__async",
-        "@jsr/std__fs",
-        "@jsr/std__net",
-        "mongodb",
-        "postgres"
-      ],
-      "tarball": "https://npm.jsr.io/~/11/@jsr/valkyr__testcontainers/2.0.2.tgz"
-    },
     "@levischuck/tiny-cbor@0.2.11": {
       "integrity": "sha512-llBRm4dT4Z89aRsm6u2oEZ8tfwL/2l6BwpZ7JcyieouniDECM5AqNgr/y08zalEIvW3RSK4upYyybDcmjXqAow=="
     },
-    "@mongodb-js/saslprep@1.3.1": {
-      "integrity": "sha512-6nZrq5kfAz0POWyhljnbWQQJQ5uT8oE2ddX303q1uY0tWsivWKgBDXBBvuFPwOqRRalXJuVO9EjOdVtuhLX0zg==",
+    "@mongodb-js/saslprep@1.3.2": {
+      "integrity": "sha512-QgA5AySqB27cGTXBFmnpifAi7HxoGUeezwo6p9dI03MuDB6Pp33zgclqVb6oVK3j6I9Vesg0+oojW2XxB59SGg==",
       "dependencies": [
         "sparse-bitfield"
       ]
@@ -318,6 +321,12 @@
         "@peculiar/asn1-schema",
         "@peculiar/asn1-x509",
         "@peculiar/x509"
+      ]
+    },
+    "@types/node@24.2.0": {
+      "integrity": "sha512-3xyG3pMCq3oYCNg7/ZP+E1ooTaGB4cG8JWRsqqOYQdbWNY4zbaV0Ennrd7stjiJEFZCaybcIgpTjJWHRfBSIDw==",
+      "dependencies": [
+        "undici-types"
       ]
     },
     "@types/webidl-conversions@7.0.3": {
@@ -505,6 +514,9 @@
     "etag@1.8.1": {
       "integrity": "sha512-aIL5Fx7mawVa300al2BnEE4iNvo1qETxLrPI/o05L7z6go7fCw1J6EQmbK4FmJ2AS7kgVF/KEZWufBfdClMcPg=="
     },
+    "eventemitter3@5.0.1": {
+      "integrity": "sha512-GWkBvjiSZK87ELrYOSESUYeVIc9mvLLf/nXalMOS5dYrgZq9o5OVkbZAVM06CVxYsCwH9BDZFPlQTlPA1j4ahA=="
+    },
     "express@4.21.2": {
       "integrity": "sha512-28HqgMZAmih1Czt9ny7qr6ek2qddF4FclbMzwhCREB6OFfH+rXAnuNCwo1/wFvrtbgsQDb4kSbX9de9lFbrXnA==",
       "dependencies": [
@@ -668,8 +680,8 @@
       "integrity": "sha512-x0Vn8spI+wuJ1O6S7gnbaQg8Pxh4NNHb7KSINmEWKiPE4RKOplvijn+NkmYmmRgP68mc70j2EbeTFRsrswaQeg==",
       "bin": true
     },
-    "mingo@6.7.0": {
-      "integrity": "sha512-0ZGCOJWMb5bkik4A0E4AIQcqYCyP7463+y1T0qCXX3EdzUn0hExAIBHvEGzsGIa4+1BW2dOIa06woGNntbPWtQ=="
+    "mingo@6.7.1": {
+      "integrity": "sha512-LrFaAdqcut7fBkYKMOE3MTm0YpjAdLpyuakRav9h/WukKF/Ze+K7tpWBTHV1+lhxKUggMm/2muhsP0GLpfLKbg=="
     },
     "mongodb-connection-string-url@3.0.2": {
       "integrity": "sha512-rMO7CGo/9BFwyZABcKAWL8UJwH/Kc2x0g72uhDWzG48URRax5TCIcJ7Rc3RZqffZzO/Gwff/jyKwCU9TN8gehA==",
@@ -996,6 +1008,9 @@
     "uncrypto@0.1.3": {
       "integrity": "sha512-Ql87qFHB3s/De2ClA9e0gsnS6zXG27SkTiSJwjCc9MebbfapQfuPzumMIUMi38ezPZVNFcHI9sUIepeQfw8J8Q=="
     },
+    "undici-types@7.10.0": {
+      "integrity": "sha512-t5Fy/nfn+14LuOc2KNYg75vZqClpAiqscVvMygNnlsHBFpSXdJaYtXMcdNLpl/Qvc3P2cB3s6lOV51nqsFq4ag=="
+    },
     "unpipe@1.0.0": {
       "integrity": "sha512-pjy2bYhSsufwWlKwPc+l3cN7+wuJlK6uz0YdJEOlQDbl6jo/YlPi4mb8agUkVC8BF7V8NuzeyPNqRksA3hztKQ=="
     },
@@ -1053,11 +1068,15 @@
     }
   },
   "workspace": {
-    "packageJson": {
-      "dependencies": [
-        "npm:@biomejs/biome@2.2.5"
-      ]
-    },
+    "dependencies": [
+      "jsr:@std/dotenv@0.225.5",
+      "jsr:@std/fs@1.0.19",
+      "jsr:@std/path@1.1.2",
+      "jsr:@valkyr/event-store@2.0.2",
+      "jsr:@valkyr/json-rpc@^1.1.0",
+      "jsr:@zod/zod@4.1.12",
+      "npm:@types/node@24.2.0"
+    ],
     "members": {
       "client": {
         "packageJson": {
@@ -1067,86 +1086,22 @@
         }
       },
       "modules/auth": {
-        "packageJson": {
-          "dependencies": [
-            "npm:@better-auth/sso@1.3.27",
-            "npm:@jsr/std__path@1.1.2",
-            "npm:better-auth@1.3.27",
-            "npm:pg@8.16.3",
-            "npm:zod@4.1.12"
-          ]
-        }
-      },
-      "modules/tenant": {
-        "packageJson": {
-          "dependencies": [
-            "npm:@jsr/std__path@1.1.2",
-            "npm:zod@4.1.12"
-          ]
-        }
-      },
-      "platform/config": {
-        "packageJson": {
-          "dependencies": [
-            "npm:@jsr/std__dotenv@0.225.5",
-            "npm:zod@4.1.12"
-          ]
-        }
+        "dependencies": [
+          "npm:@better-auth/sso@1.3.27",
+          "npm:better-auth@1.3.27",
+          "npm:pg@8.16.3"
+        ]
       },
       "platform/database": {
-        "packageJson": {
-          "dependencies": [
-            "npm:@jsr/std__fs@1.0.19",
-            "npm:postgres@3.4.7",
-            "npm:zod@4.1.12"
-          ]
-        }
-      },
-      "platform/logger": {
-        "packageJson": {
-          "dependencies": [
-            "npm:@jsr/valkyr__event-store@2.0.2",
-            "npm:zod@4.1.12"
-          ]
-        }
+        "dependencies": [
+          "npm:postgres@3.4.7"
+        ]
       },
       "platform/relay": {
-        "packageJson": {
-          "dependencies": [
-            "npm:path-to-regexp@8.3.0",
-            "npm:zod-openapi@5.4.3",
-            "npm:zod@4.1.12"
-          ]
-        }
-      },
-      "platform/server": {
-        "packageJson": {
-          "dependencies": [
-            "npm:zod@4.1.12"
-          ]
-        }
-      },
-      "platform/utilities": {
-        "packageJson": {
-          "dependencies": [
-            "npm:zod@4.1.12"
-          ]
-        }
-      },
-      "platform/value-object": {
-        "packageJson": {
-          "dependencies": [
-            "npm:zod@4.1.12"
-          ]
-        }
-      },
-      "server": {
-        "packageJson": {
-          "dependencies": [
-            "npm:@jsr/std__path@1.1.2",
-            "npm:zod@4.1.12"
-          ]
-        }
+        "dependencies": [
+          "npm:path-to-regexp@8.3.0",
+          "npm:zod-openapi@5.4.3"
+        ]
       }
     }
   }

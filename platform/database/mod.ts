@@ -1,6 +1,6 @@
 export type { TransactionSql } from "postgres";
 
-export * from "./client.ts";
-export * from "./errors.ts";
-export * from "./migrate.ts";
-export * from "./parser.ts";
+export * from "./libraries/client.ts";
+export * from "./libraries/errors.ts";
+export * from "./libraries/migrate.ts";
+export * from "./libraries/parser.ts";

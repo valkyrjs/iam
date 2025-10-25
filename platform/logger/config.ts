@@ -1,4 +1,4 @@
-import { getEnvironmentVariable } from "@platform/config/environment.ts";
+import { getEnvironmentVariable } from "@platform/config";
 import z from "zod";
 
 export const config = {

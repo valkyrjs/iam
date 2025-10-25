@@ -1,0 +1,7 @@
+{
+  "name": "@platform/server",
+  "version": "0.0.0",
+  "exports": {
+    ".": "./mod.ts"
+  }
+}
